@@ -1,4 +1,4 @@
-import { Theme, LinkGroup } from './types';
+import { Theme, LinkGroup, SearchEngine } from './types';
 
 export const THEMES: Record<string, Theme> = {
   darkish: {
@@ -282,4 +282,13 @@ export const LINKS_DATA: LinkGroup[] = [
       { label: 'feedly', url: 'https://feedly.com' },
     ]
   }
+];
+
+export const SEARCH_ENGINES: SearchEngine[] = [
+  { id: 'google', label: 'google', url: 'https://www.google.com/search?q=' },
+  { id: 'ddg', label: 'duckduckgo', url: 'https://duckduckgo.com/?q=' },
+  { id: 'bing', label: 'bing', url: 'https://www.bing.com/search?q=' },
+  { id: 'youtube', label: 'youtube', url: 'https://www.youtube.com/results?search_query=' },
+  { id: 'reddit', label: 'reddit', url: 'https://www.reddit.com/search/?q=' },
+  { id: 'github', label: 'github', url: 'https://github.com/search?q=' },
 ];

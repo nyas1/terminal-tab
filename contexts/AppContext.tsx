@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useStickyState } from '../hooks/useStickyState';
-import { THEMES, LINKS_DATA } from '../constants';
-import { TodoItem, LinkGroup, Theme, Layouts, FunOptions } from '../types';
+import { THEMES, LINKS_DATA, SEARCH_ENGINES } from '../constants';
+import { TodoItem, LinkGroup, Theme, Layouts, FunOptions, SearchEngineId } from '../types';
 
 // Default Layouts
 const DEFAULT_LAYOUTS: Layouts = {
@@ -49,6 +49,8 @@ const funDefaults: FunOptions = {
     maze: { speed: 50 },
 };
 
+const DEFAULT_SEARCH_ENGINE_IDS = SEARCH_ENGINES.map((engine) => engine.id);
+
 interface AppContextType {
     currentTheme: string;
     setCurrentTheme: (theme: string) => void;
@@ -76,6 +78,12 @@ interface AppContextType {
     setWidgetRadius: (radius: number) => void;
     openInNewTab: boolean;
     setOpenInNewTab: (isOpen: boolean) => void;
+    searchDefaultEngine: SearchEngineId;
+    setSearchDefaultEngine: (engine: SearchEngineId) => void;
+    searchEnabledEngines: SearchEngineId[];
+    setSearchEnabledEngines: (engines: SearchEngineId[]) => void;
+    searchSlashHotkeyEnabled: boolean;
+    setSearchSlashHotkeyEnabled: (enabled: boolean) => void;
     showWidgetTitles: boolean;
     setShowWidgetTitles: (show: boolean) => void;
     reserveSettingsSpace: boolean;
@@ -131,6 +139,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const [widgetRadius, setWidgetRadius] = useStickyState<number>(0, 'tui-widget-radius');
     const [openInNewTab, setOpenInNewTab] = useStickyState<boolean>(false, 'tui-open-new-tab');
+    const [searchDefaultEngine, setSearchDefaultEngine] = useStickyState<SearchEngineId>('google', 'tui-search-default-engine');
+    const [searchEnabledEngines, setSearchEnabledEngines] = useStickyState<SearchEngineId[]>(DEFAULT_SEARCH_ENGINE_IDS, 'tui-search-enabled-engines');
+    const [searchSlashHotkeyEnabled, setSearchSlashHotkeyEnabled] = useStickyState<boolean>(true, 'tui-search-slash-hotkey');
     const [showWidgetTitles, setShowWidgetTitles] = useStickyState<boolean>(true, 'tui-show-titles');
     const [reserveSettingsSpace, setReserveSettingsSpace] = useStickyState<boolean>(true, 'tui-reserve-settings');
     const [customFont, setCustomFont] = useStickyState<string>('', 'tui-custom-font');
@@ -233,6 +244,29 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
     }, [currentTheme, setCurrentTheme, weatherMode, setWeatherMode]);
 
+    // Migrate old search engine key.
+    useEffect(() => {
+        const legacyEngine = localStorage.getItem('tui-search-engine') as SearchEngineId | null;
+        if (!legacyEngine) return;
+        if (!DEFAULT_SEARCH_ENGINE_IDS.includes(legacyEngine)) return;
+        if (searchDefaultEngine === 'google') {
+            setSearchDefaultEngine(legacyEngine);
+        }
+        localStorage.removeItem('tui-search-engine');
+    }, [searchDefaultEngine, setSearchDefaultEngine]);
+
+    // Keep search settings valid.
+    useEffect(() => {
+        if (!searchEnabledEngines || searchEnabledEngines.length === 0) {
+            setSearchEnabledEngines(DEFAULT_SEARCH_ENGINE_IDS);
+            return;
+        }
+
+        if (!searchEnabledEngines.includes(searchDefaultEngine)) {
+            setSearchDefaultEngine(searchEnabledEngines[0]);
+        }
+    }, [searchDefaultEngine, searchEnabledEngines, setSearchDefaultEngine, setSearchEnabledEngines]);
+
     // Apply Theme
     useEffect(() => {
         const theme = allThemes[currentTheme] || THEMES['greyish'];
@@ -312,6 +346,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setTimeFormat('12h');
         setWidgetRadius(0);
         setFunOptions(funDefaults);
+        setSearchDefaultEngine('google');
+        setSearchEnabledEngines(DEFAULT_SEARCH_ENGINE_IDS);
+        setSearchSlashHotkeyEnabled(true);
     };
 
     const removeExtraWidget = (key: string) => {
@@ -410,7 +447,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 customFont,
                 funOptions,
                 widgetRadius,
-                openInNewTab
+                openInNewTab,
+                searchDefaultEngine,
+                searchEnabledEngines,
+                searchSlashHotkeyEnabled
             }
         };
         setPresets([...presets, newPreset]);
@@ -434,6 +474,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (d.funOptions) setFunOptions(d.funOptions);
         if (d.widgetRadius !== undefined) setWidgetRadius(d.widgetRadius);
         if (d.openInNewTab !== undefined) setOpenInNewTab(d.openInNewTab);
+        if (d.searchDefaultEngine) setSearchDefaultEngine(d.searchDefaultEngine);
+        if (d.searchEnabledEngines) setSearchEnabledEngines(d.searchEnabledEngines);
+        if (d.searchSlashHotkeyEnabled !== undefined) setSearchSlashHotkeyEnabled(d.searchSlashHotkeyEnabled);
     };
 
     const handleDeletePreset = (id: number) => {
@@ -454,6 +497,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         timeFormat, setTimeFormat,
         widgetRadius, setWidgetRadius,
         openInNewTab, setOpenInNewTab,
+        searchDefaultEngine, setSearchDefaultEngine,
+        searchEnabledEngines, setSearchEnabledEngines,
+        searchSlashHotkeyEnabled, setSearchSlashHotkeyEnabled,
         showWidgetTitles, setShowWidgetTitles,
         reserveSettingsSpace, setReserveSettingsSpace,
         customFont, setCustomFont,

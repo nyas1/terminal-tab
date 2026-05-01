@@ -5,6 +5,7 @@ import { SettingsWidgetsTab } from './settings/SettingsWidgetsTab';
 import { SettingsShortcutsTab } from './settings/SettingsShortcutsTab';
 import { SettingsPresetsTab } from './settings/SettingsPresetsTab';
 import { SettingsAdvancedTab } from './settings/SettingsAdvancedTab';
+import { SearchEngineId } from '../types';
 
 type Tab = 'themes' | 'shortcuts' | 'widgets' | 'advanced' | 'presets';
 
@@ -29,6 +30,9 @@ export const Settings: React.FC = () => {
         presets, handleSavePreset, handleLoadPreset, handleDeletePreset,
         widgetRadius, setWidgetRadius,
         openInNewTab, setOpenInNewTab,
+        searchDefaultEngine, setSearchDefaultEngine,
+        searchEnabledEngines, setSearchEnabledEngines,
+        searchSlashHotkeyEnabled, setSearchSlashHotkeyEnabled,
         weatherLocation, setWeatherLocation,
     } = useAppContext();
 
@@ -111,6 +115,29 @@ export const Settings: React.FC = () => {
             window.removeEventListener('mouseup', handleMouseUp);
         };
     }, [isDragging, isResizing]);
+
+    const handleToggleSearchEngine = (engineId: SearchEngineId) => {
+        const isEnabled = searchEnabledEngines.includes(engineId);
+
+        if (isEnabled) {
+            if (searchEnabledEngines.length === 1) return;
+            const nextEnabled = searchEnabledEngines.filter(id => id !== engineId);
+            setSearchEnabledEngines(nextEnabled);
+            if (searchDefaultEngine === engineId) {
+                setSearchDefaultEngine(nextEnabled[0]);
+            }
+            return;
+        }
+
+        setSearchEnabledEngines([...searchEnabledEngines, engineId]);
+    };
+
+    const handleSearchDefaultEngineChange = (engineId: SearchEngineId) => {
+        setSearchDefaultEngine(engineId);
+        if (!searchEnabledEngines.includes(engineId)) {
+            setSearchEnabledEngines([...searchEnabledEngines, engineId]);
+        }
+    };
 
     return (
         <>
@@ -262,6 +289,12 @@ export const Settings: React.FC = () => {
                                     onTimeFormatChange={setTimeFormat}
                                     openInNewTab={openInNewTab}
                                     onToggleOpenInNewTab={() => setOpenInNewTab(!openInNewTab)}
+                                    searchDefaultEngine={searchDefaultEngine}
+                                    onSearchDefaultEngineChange={handleSearchDefaultEngineChange}
+                                    searchEnabledEngines={searchEnabledEngines}
+                                    onToggleSearchEngine={handleToggleSearchEngine}
+                                    searchSlashHotkeyEnabled={searchSlashHotkeyEnabled}
+                                    onToggleSearchSlashHotkey={() => setSearchSlashHotkeyEnabled(!searchSlashHotkeyEnabled)}
                                     activeWidgets={activeWidgets}
                                     funOptions={funOptions}
                                     onFunOptionsChange={setFunOptions}

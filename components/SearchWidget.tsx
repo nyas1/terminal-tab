@@ -1,33 +1,51 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAppContext } from '../contexts/AppContext';
+import { SEARCH_ENGINES } from '../constants';
 
-const ENGINES = [
-    { id: 'google', label: 'google', url: 'https://www.google.com/search?q=' },
-    { id: 'ddg', label: 'duckduckgo', url: 'https://duckduckgo.com/?q=' },
-    { id: 'bing', label: 'bing', url: 'https://www.bing.com/search?q=' },
-    { id: 'youtube', label: 'youtube', url: 'https://www.youtube.com/results?search_query=' },
-    { id: 'reddit', label: 'reddit', url: 'https://www.reddit.com/search/?q=' },
-    { id: 'github', label: 'github', url: 'https://github.com/search?q=' },
-];
+const ENGINES = SEARCH_ENGINES;
 
 export const SearchWidget: React.FC = () => {
+    const {
+        searchSlashHotkeyEnabled,
+        searchDefaultEngine,
+        setSearchDefaultEngine,
+        searchEnabledEngines
+    } = useAppContext();
     const [query, setQuery] = useState('');
-    const [engineIndex, setEngineIndex] = useState(0);
     
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Persist engine selection
     useEffect(() => {
-        const savedEngine = localStorage.getItem('tui-search-engine');
-        if (savedEngine) {
-            const index = ENGINES.findIndex(e => e.id === savedEngine);
-            if (index !== -1) setEngineIndex(index);
-        }
-    }, []);
+        const handleSlashHotkey = (e: KeyboardEvent) => {
+            if (!searchSlashHotkeyEnabled) return;
+            if (e.key !== '/') return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+            const target = e.target as HTMLElement | null;
+            const tagName = target?.tagName?.toLowerCase();
+            const isTypingTarget =
+                tagName === 'input' ||
+                tagName === 'textarea' ||
+                target?.isContentEditable;
+
+            if (isTypingTarget) return;
+
+            e.preventDefault();
+            inputRef.current?.focus();
+        };
+
+        window.addEventListener('keydown', handleSlashHotkey);
+        return () => window.removeEventListener('keydown', handleSlashHotkey);
+    }, [searchSlashHotkeyEnabled]);
+
+    const enabledEngines = ENGINES.filter((engine) => searchEnabledEngines.includes(engine.id));
+    const cycleEngines = enabledEngines.length ? enabledEngines : ENGINES;
+    const currentEngine = cycleEngines.find((engine) => engine.id === searchDefaultEngine) || cycleEngines[0];
 
     const cycleEngine = () => {
-        const nextIndex = (engineIndex + 1) % ENGINES.length;
-        setEngineIndex(nextIndex);
-        localStorage.setItem('tui-search-engine', ENGINES[nextIndex].id);
+        const currentIndex = cycleEngines.findIndex((engine) => engine.id === currentEngine.id);
+        const nextIndex = (currentIndex + 1) % cycleEngines.length;
+        setSearchDefaultEngine(cycleEngines[nextIndex].id);
         inputRef.current?.focus();
     };
 
@@ -35,13 +53,10 @@ export const SearchWidget: React.FC = () => {
         e.preventDefault();
         if (!query.trim()) return;
 
-        const currentEngine = ENGINES[engineIndex];
         window.open(currentEngine.url + encodeURIComponent(query), '_blank', 'noopener,noreferrer');
         setQuery('');
         inputRef.current?.blur();
     };
-
-    const currentEngine = ENGINES[engineIndex];
 
     return (
         <div 

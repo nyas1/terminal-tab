@@ -1,5 +1,7 @@
 import React from 'react';
 import { AsciiSlider } from '../AsciiSlider';
+import { SEARCH_ENGINES } from '../../constants';
+import { SearchEngineId } from '../../types';
 
 interface SettingsAdvancedTabProps {
     showWidgetTitles: boolean;
@@ -25,6 +27,12 @@ interface SettingsAdvancedTabProps {
     onTimeFormatChange: (format: '12h' | '24h') => void;
     openInNewTab?: boolean;
     onToggleOpenInNewTab?: () => void;
+    searchDefaultEngine: SearchEngineId;
+    onSearchDefaultEngineChange: (engine: SearchEngineId) => void;
+    searchEnabledEngines: SearchEngineId[];
+    onToggleSearchEngine: (engine: SearchEngineId) => void;
+    searchSlashHotkeyEnabled: boolean;
+    onToggleSearchSlashHotkey: () => void;
     activeWidgets: Record<string, boolean>;
     funOptions: {
         matrix: { speed: number; fade: number; charSet: 'numbers' | 'latin' | 'mixed'; charFlux: number; glow: boolean; fontSize: number };
@@ -69,6 +77,12 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
     onTimeFormatChange,
     openInNewTab,
     onToggleOpenInNewTab,
+    searchDefaultEngine,
+    onSearchDefaultEngineChange,
+    searchEnabledEngines,
+    onToggleSearchEngine,
+    searchSlashHotkeyEnabled,
+    onToggleSearchSlashHotkey,
     activeWidgets,
     funOptions,
     onFunOptionsChange,
@@ -274,6 +288,50 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                         {openInNewTab ? '[x]' : '[ ]'}
                     </span>
                     <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">Open Links in New Tab</span>
+                </div>
+            </div>
+
+            <div className="border border-[var(--color-border)] p-4">
+                <h3 className="text-[var(--color-accent)] font-bold mb-2">Keyboard</h3>
+                <div onClick={onToggleSearchSlashHotkey} className="flex items-center gap-2 cursor-pointer select-none group">
+                    <span className="font-mono text-[var(--color-accent)] font-bold">
+                        {searchSlashHotkeyEnabled ? '[x]' : '[ ]'}
+                    </span>
+                    <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">Use '/' to focus search</span>
+                </div>
+            </div>
+
+            <div className="border border-[var(--color-border)] p-4">
+                <h3 className="text-[var(--color-accent)] font-bold mb-2">Search</h3>
+                <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-2">
+                        <span className="text-[var(--color-muted)] text-xs">Default Engine</span>
+                        <div className="flex flex-wrap gap-4">
+                            {SEARCH_ENGINES.map((engine) => (
+                                <div key={engine.id} onClick={() => onSearchDefaultEngineChange(engine.id)} className="flex items-center gap-2 cursor-pointer select-none group">
+                                    <span className="font-mono text-[var(--color-accent)] font-bold">
+                                        {searchDefaultEngine === engine.id ? '[x]' : '[ ]'}
+                                    </span>
+                                    <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">{engine.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 border-t border-[var(--color-border)] pt-3 border-dashed">
+                        <span className="text-[var(--color-muted)] text-xs">Enabled Engines (click-cycle list)</span>
+                        <div className="flex flex-wrap gap-4">
+                            {SEARCH_ENGINES.map((engine) => (
+                                <div key={engine.id} onClick={() => onToggleSearchEngine(engine.id)} className="flex items-center gap-2 cursor-pointer select-none group">
+                                    <span className="font-mono text-[var(--color-accent)] font-bold">
+                                        {searchEnabledEngines.includes(engine.id) ? '[x]' : '[ ]'}
+                                    </span>
+                                    <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">{engine.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <span className="text-[var(--color-muted)] text-[10px] opacity-70">At least one engine stays enabled.</span>
+                    </div>
                 </div>
             </div>
 

@@ -45,6 +45,14 @@ export interface LinkGroup {
   links: Link[];
 }
 
+export type SearchEngineId = 'google' | 'ddg' | 'bing' | 'youtube' | 'reddit' | 'github';
+
+export interface SearchEngine {
+  id: SearchEngineId;
+  label: string;
+  url: string;
+}
+
 export interface RealStats {
     os: string;
     browser: string;

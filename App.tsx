@@ -19,6 +19,7 @@ import { FireworksWidget } from './components/FireworksWidget';
 import { StarfieldWidget } from './components/StarfieldWidget';
 import { RainWidget } from './components/RainWidget';
 import { MazeWidget } from './components/MazeWidget';
+import { SpotifyWidget } from './components/SpotifyWidget';
 import { Settings } from './components/Settings';
 import { ThemeMaker } from './components/ThemeMaker';
 import { AppProvider, useAppContext } from './contexts/AppContext';
@@ -171,6 +172,8 @@ function AppContent() {
                     return <TuiBox {...boxProps}><RainWidget speed={funOptions.rain.speed} /></TuiBox>;
                 case 'maze':
                     return <TuiBox {...boxProps}><MazeWidget speed={funOptions.maze.speed} /></TuiBox>;
+                case 'spotify':
+                    return <TuiBox {...boxProps} title="spotify-now-playing"><SpotifyWidget /></TuiBox>;
                 default:
                     return null;
             }

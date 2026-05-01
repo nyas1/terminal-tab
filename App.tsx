@@ -32,6 +32,7 @@ function AppContent() {
     linkGroups,
     statsMode,
     weatherMode,
+    weatherShowHourlyForecast,
     layouts, setLayouts,
     tempUnit,
     openInNewTab,
@@ -146,7 +147,7 @@ function AppContent() {
                 case 'stats':
                     return <TuiBox {...boxProps} title="stats"><StatsWidget mode={statsMode} /></TuiBox>;
                 case 'weather':
-                    return <TuiBox {...boxProps} title="weather"><WeatherWidget mode={weatherMode} unit={tempUnit} /></TuiBox>;
+                    return <TuiBox {...boxProps} title="weather"><WeatherWidget mode={weatherMode} unit={tempUnit} showHourlyForecast={weatherShowHourlyForecast} /></TuiBox>;
                 case 'todo':
                     return <TuiBox {...boxProps} title="todo-list"><TodoWidget tasks={todos} setTasks={setTodos} /></TuiBox>;
                 case 'links':

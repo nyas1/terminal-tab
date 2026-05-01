@@ -21,10 +21,16 @@ interface SettingsAdvancedTabProps {
     onStatsModeChange: (mode: 'text' | 'graph' | 'detailed' | 'minimal') => void;
     weatherMode: 'standard' | 'icon';
     onWeatherModeChange: (mode: 'standard' | 'icon') => void;
-    tempUnit: 'C' | 'F';
-    onTempUnitChange: (unit: 'C' | 'F') => void;
+    weatherShowHourlyForecast: boolean;
+    onToggleWeatherHourlyForecast: () => void;
     timeFormat: '12h' | '24h';
     onTimeFormatChange: (format: '12h' | '24h') => void;
+    dateFormat: 'long' | 'short';
+    onDateFormatChange: (format: 'long' | 'short') => void;
+    clockShowDay: boolean;
+    onToggleClockShowDay: () => void;
+    clockShowSeconds: boolean;
+    onToggleClockShowSeconds: () => void;
     openInNewTab?: boolean;
     onToggleOpenInNewTab?: () => void;
     searchDefaultEngine: SearchEngineId;
@@ -71,10 +77,16 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
     onStatsModeChange,
     weatherMode,
     onWeatherModeChange,
-    tempUnit,
-    onTempUnitChange,
+    weatherShowHourlyForecast,
+    onToggleWeatherHourlyForecast,
     timeFormat,
     onTimeFormatChange,
+    dateFormat,
+    onDateFormatChange,
+    clockShowDay,
+    onToggleClockShowDay,
+    clockShowSeconds,
+    onToggleClockShowSeconds,
     openInNewTab,
     onToggleOpenInNewTab,
     searchDefaultEngine,
@@ -142,23 +154,6 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                         />
                     </div>
 
-                    <div className="flex flex-col gap-2 mt-2 border-t border-[var(--color-border)] pt-2 border-dashed">
-                        <span className="text-[var(--color-muted)] text-xs">Clock Format</span>
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <div onClick={() => onTimeFormatChange('12h')} className="flex items-center gap-2 cursor-pointer select-none group">
-                                <span className="font-mono text-[var(--color-accent)] font-bold">
-                                    {timeFormat === '12h' ? '[x]' : '[ ]'}
-                                </span>
-                                <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">12-hour (AM/PM)</span>
-                            </div>
-                            <div onClick={() => onTimeFormatChange('24h')} className="flex items-center gap-2 cursor-pointer select-none group">
-                                <span className="font-mono text-[var(--color-accent)] font-bold">
-                                    {timeFormat === '24h' ? '[x]' : '[ ]'}
-                                </span>
-                                <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">24-hour</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -249,22 +244,15 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                     </div>
 
 
-                    <div className="flex items-center gap-4 mt-2 border-t border-[var(--color-border)] pt-2 border-dashed">
-                        <span className="text-[var(--color-muted)] text-sm">Units:</span>
-                        <div onClick={() => onTempUnitChange('C')} className="flex items-center gap-2 cursor-pointer select-none group">
-                            <span className="font-mono text-[var(--color-accent)] font-bold">
-                                {tempUnit === 'C' ? '[x]' : '[ ]'}
-                            </span>
-                            <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">Celsius (°C)</span>
-                        </div>
-                        <div onClick={() => onTempUnitChange('F')} className="flex items-center gap-2 cursor-pointer select-none group">
-                            <span className="font-mono text-[var(--color-accent)] font-bold">
-                                {tempUnit === 'F' ? '[x]' : '[ ]'}
-                            </span>
-                            <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">Fahrenheit (°F)</span>
-                        </div>
+                    <div
+                        onClick={onToggleWeatherHourlyForecast}
+                        className="flex items-center gap-2 cursor-pointer mt-2 border-t border-[var(--color-border)] pt-2 border-dashed select-none group"
+                    >
+                        <span className="font-mono text-[var(--color-accent)] font-bold">
+                            {weatherShowHourlyForecast ? '[x]' : '[ ]'}
+                        </span>
+                        <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">Show Hourly Forecast</span>
                     </div>
-
 
                     <div className="flex flex-col gap-2 mt-2 border-t border-[var(--color-border)] pt-2 border-dashed">
                         <h3 className="text-[var(--color-accent)] font-bold ">Weather Location</h3>
@@ -278,6 +266,52 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                         </div>  
                     </div>
 
+                </div>
+            </div>
+
+            <div className="border border-[var(--color-border)] p-4">
+                <h3 className="text-[var(--color-accent)] font-bold mb-2">Date & Time Settings</h3>
+                <div className="flex flex-col gap-3">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div onClick={() => onTimeFormatChange('12h')} className="flex items-center gap-2 cursor-pointer select-none group">
+                            <span className="font-mono text-[var(--color-accent)] font-bold">
+                                {timeFormat === '12h' ? '[x]' : '[ ]'}
+                            </span>
+                            <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">12-hour</span>
+                        </div>
+                        <div onClick={() => onTimeFormatChange('24h')} className="flex items-center gap-2 cursor-pointer select-none group">
+                            <span className="font-mono text-[var(--color-accent)] font-bold">
+                                {timeFormat === '24h' ? '[x]' : '[ ]'}
+                            </span>
+                            <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">24-hour</span>
+                        </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4 border-t border-[var(--color-border)] pt-2 border-dashed">
+                        <div onClick={() => onDateFormatChange('long')} className="flex items-center gap-2 cursor-pointer select-none group">
+                            <span className="font-mono text-[var(--color-accent)] font-bold">
+                                {dateFormat === 'long' ? '[x]' : '[ ]'}
+                            </span>
+                            <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">Date: long</span>
+                        </div>
+                        <div onClick={() => onDateFormatChange('short')} className="flex items-center gap-2 cursor-pointer select-none group">
+                            <span className="font-mono text-[var(--color-accent)] font-bold">
+                                {dateFormat === 'short' ? '[x]' : '[ ]'}
+                            </span>
+                            <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">Date: short</span>
+                        </div>
+                    </div>
+                    <div onClick={onToggleClockShowDay} className="flex items-center gap-2 cursor-pointer select-none group border-t border-[var(--color-border)] pt-2 border-dashed">
+                        <span className="font-mono text-[var(--color-accent)] font-bold">
+                            {clockShowDay ? '[x]' : '[ ]'}
+                        </span>
+                        <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">Show day</span>
+                    </div>
+                    <div onClick={onToggleClockShowSeconds} className="flex items-center gap-2 cursor-pointer select-none group border-t border-[var(--color-border)] pt-2 border-dashed">
+                        <span className="font-mono text-[var(--color-accent)] font-bold">
+                            {clockShowSeconds ? '[x]' : '[ ]'}
+                        </span>
+                        <span className="text-[var(--color-fg)] group-hover:text-[var(--color-accent)]">Show seconds</span>
+                    </div>
                 </div>
             </div>
 

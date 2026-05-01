@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 
 export const DateTimeWidget: React.FC = () => {
-  const { timeFormat } = useAppContext();
+  const { timeFormat, dateFormat, clockShowDay, clockShowSeconds } = useAppContext();
   const [date, setDate] = useState(new Date());
   const containerRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<'vertical' | 'horizontal'>('horizontal');
@@ -32,8 +32,9 @@ export const DateTimeWidget: React.FC = () => {
       const CHAR_ASPECT = 0.55;
 
       // Char counts based on format
-      const TIME_CHARS_H = timeFormat === '12h' ? 11 : 8; // "12:00:00 PM" or "23:00:00"
-      const TIME_CHARS_V_TOP = 8;  // "12:00:00"
+      const timeChars = clockShowSeconds ? 8 : 5; // "12:00:00" or "12:00"
+      const TIME_CHARS_H = timeFormat === '12h' ? timeChars + 3 : timeChars; // add " PM" in 12h
+      const TIME_CHARS_V_TOP = timeChars;
 
       let newTimeFS = 0;
       let newDateFS = 0;
@@ -76,26 +77,38 @@ export const DateTimeWidget: React.FC = () => {
       observer.disconnect();
       clearTimeout(timeout);
     };
-  }, [timeFormat]);
+  }, [timeFormat, clockShowSeconds]);
 
-  const timeStringFull = date.toLocaleTimeString('en-US', {
+  const timeOptions: Intl.DateTimeFormatOptions = {
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
     hour12: timeFormat === '12h'
-  });
+  };
+  if (clockShowSeconds) {
+    timeOptions.second = '2-digit';
+  }
+
+  const timeStringFull = date.toLocaleTimeString('en-US', timeOptions);
 
   // Split "12:00:00 PM" -> ["12:00:00", "PM"].
   // In 24h format ampmPart is undefined.
   const [timePart, ampmPart] = timeStringFull.split(' ');
 
-  const dateOptions: Intl.DateTimeFormatOptions = {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  };
-  const dateString = date.toLocaleDateString('en-US', dateOptions).toLowerCase();
+  const dateOptions: Intl.DateTimeFormatOptions = dateFormat === 'long'
+    ? {
+        ...(clockShowDay ? { weekday: 'long' as const } : {}),
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      }
+    : {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit'
+      };
+  const dateCore = date.toLocaleDateString(dateFormat === 'short' ? 'en-GB' : 'en-US', dateOptions).toLowerCase();
+  const dayPrefix = clockShowDay ? `${date.toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase()} ` : '';
+  const dateString = dateFormat === 'short' ? `${dayPrefix}${dateCore}` : dateCore;
 
   return (
     <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-center overflow-hidden">

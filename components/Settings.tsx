@@ -17,8 +17,11 @@ export const Settings: React.FC = () => {
         customCss, setCustomCss,
         statsMode, setStatsMode,
         weatherMode, setWeatherMode,
-        tempUnit, setTempUnit,
+        weatherShowHourlyForecast, setWeatherShowHourlyForecast,
         timeFormat, setTimeFormat,
+        dateFormat, setDateFormat,
+        clockShowDay, setClockShowDay,
+        clockShowSeconds, setClockShowSeconds,
         isLayoutLocked, setIsLayoutLocked,
         isResizingEnabled, setIsResizingEnabled,
         resetLayout,
@@ -283,10 +286,16 @@ export const Settings: React.FC = () => {
                                     onStatsModeChange={setStatsMode}
                                     weatherMode={weatherMode}
                                     onWeatherModeChange={setWeatherMode}
-                                    tempUnit={tempUnit}
-                                    onTempUnitChange={setTempUnit}
+                                    weatherShowHourlyForecast={weatherShowHourlyForecast}
+                                    onToggleWeatherHourlyForecast={() => setWeatherShowHourlyForecast(!weatherShowHourlyForecast)}
                                     timeFormat={timeFormat}
                                     onTimeFormatChange={setTimeFormat}
+                                    dateFormat={dateFormat}
+                                    onDateFormatChange={setDateFormat}
+                                    clockShowDay={clockShowDay}
+                                    onToggleClockShowDay={() => setClockShowDay(!clockShowDay)}
+                                    clockShowSeconds={clockShowSeconds}
+                                    onToggleClockShowSeconds={() => setClockShowSeconds(!clockShowSeconds)}
                                     openInNewTab={openInNewTab}
                                     onToggleOpenInNewTab={() => setOpenInNewTab(!openInNewTab)}
                                     searchDefaultEngine={searchDefaultEngine}

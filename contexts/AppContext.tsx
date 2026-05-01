@@ -68,12 +68,20 @@ interface AppContextType {
     setStatsMode: (mode: 'text' | 'graph' | 'detailed' | 'minimal') => void;
     weatherMode: 'standard' | 'icon';
     setWeatherMode: (mode: 'standard' | 'icon') => void;
+    weatherShowHourlyForecast: boolean;
+    setWeatherShowHourlyForecast: (show: boolean) => void;
     layouts: Layouts;
     setLayouts: (layouts: Layouts) => void;
     tempUnit: 'C' | 'F';
     setTempUnit: (unit: 'C' | 'F') => void;
     timeFormat: '12h' | '24h';
     setTimeFormat: (format: '12h' | '24h') => void;
+    dateFormat: 'long' | 'short';
+    setDateFormat: (format: 'long' | 'short') => void;
+    clockShowDay: boolean;
+    setClockShowDay: (show: boolean) => void;
+    clockShowSeconds: boolean;
+    setClockShowSeconds: (show: boolean) => void;
     widgetRadius: number;
     setWidgetRadius: (radius: number) => void;
     openInNewTab: boolean;
@@ -132,10 +140,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [customCss, setCustomCss] = useStickyState<string>('', 'tui-custom-css');
     const [statsMode, setStatsMode] = useStickyState<'text' | 'graph' | 'detailed' | 'minimal'>('minimal', 'tui-stats-mode');
     const [weatherMode, setWeatherMode] = useStickyState<'standard' | 'icon'>('standard', 'tui-weather-mode');
+    const [weatherShowHourlyForecast, setWeatherShowHourlyForecast] = useStickyState<boolean>(true, 'tui-weather-show-hourly');
     const [layouts, setLayouts] = useStickyState<Layouts>(DEFAULT_LAYOUTS, 'tui-layouts-v4');
 
     const [tempUnit, setTempUnit] = useStickyState<'C' | 'F'>('C', 'tui-temp-unit');
     const [timeFormat, setTimeFormat] = useStickyState<'12h' | '24h'>('12h', 'tui-time-format');
+    const [dateFormat, setDateFormat] = useStickyState<'long' | 'short'>('long', 'tui-date-format');
+    const [clockShowDay, setClockShowDay] = useStickyState<boolean>(true, 'tui-clock-show-day');
+    const [clockShowSeconds, setClockShowSeconds] = useStickyState<boolean>(true, 'tui-clock-show-seconds');
 
     const [widgetRadius, setWidgetRadius] = useStickyState<number>(0, 'tui-widget-radius');
     const [openInNewTab, setOpenInNewTab] = useStickyState<boolean>(false, 'tui-open-new-tab');
@@ -342,8 +354,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setCustomFont('');
         setStatsMode('minimal');
         setWeatherMode('standard');
+        setWeatherShowHourlyForecast(true);
         setTempUnit('C');
         setTimeFormat('12h');
+        setDateFormat('long');
+        setClockShowDay(true);
+        setClockShowSeconds(true);
         setWidgetRadius(0);
         setFunOptions(funDefaults);
         setSearchDefaultEngine('google');
@@ -439,8 +455,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 customCss,
                 statsMode,
                 weatherMode,
+                weatherShowHourlyForecast,
                 tempUnit,
                 timeFormat,
+                dateFormat,
+                clockShowDay,
+                clockShowSeconds,
                 layouts,
                 activeWidgets,
                 showWidgetTitles,
@@ -465,8 +485,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (d.customCss !== undefined) setCustomCss(d.customCss);
         if (d.statsMode) setStatsMode(d.statsMode);
         if (d.weatherMode) setWeatherMode(d.weatherMode);
+        if (d.weatherShowHourlyForecast !== undefined) setWeatherShowHourlyForecast(d.weatherShowHourlyForecast);
         if (d.tempUnit) setTempUnit(d.tempUnit);
         if (d.timeFormat) setTimeFormat(d.timeFormat);
+        if (d.dateFormat) setDateFormat(d.dateFormat);
+        if (d.clockShowDay !== undefined) setClockShowDay(d.clockShowDay);
+        if (d.clockShowSeconds !== undefined) setClockShowSeconds(d.clockShowSeconds);
         if (d.layouts) setLayouts(d.layouts);
         if (d.activeWidgets) setActiveWidgets(d.activeWidgets);
         if (d.showWidgetTitles !== undefined) setShowWidgetTitles(d.showWidgetTitles);
@@ -492,9 +516,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         customCss, setCustomCss,
         statsMode, setStatsMode,
         weatherMode, setWeatherMode,
+        weatherShowHourlyForecast, setWeatherShowHourlyForecast,
         layouts, setLayouts,
         tempUnit, setTempUnit,
         timeFormat, setTimeFormat,
+        dateFormat, setDateFormat,
+        clockShowDay, setClockShowDay,
+        clockShowSeconds, setClockShowSeconds,
         widgetRadius, setWidgetRadius,
         openInNewTab, setOpenInNewTab,
         searchDefaultEngine, setSearchDefaultEngine,

@@ -6,10 +6,15 @@ import { useWeather } from '../hooks/useWeather';
 interface WeatherWidgetProps {
   mode?: 'standard' | 'icon';
   unit?: TempUnit;
+  showHourlyForecast?: boolean;
 }
 
-export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ mode = 'standard', unit = 'C' }) => {
+export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ mode = 'standard', unit = 'C', showHourlyForecast = true }) => {
   const { data, loading, error, refetch } = useWeather();
+  const windSpeed = Math.round(data?.current.windSpeed ? data.current.windSpeed * 1.60934 : 0);
+  const windUnitLabel = 'kmph';
+  const visibility = Number((data?.current.visKm ?? 0).toFixed(1));
+  const visibilityUnitLabel = 'km';
   
   // Responsive Logic for Standard Mode
   const containerRef = useRef<HTMLDivElement>(null);
@@ -113,35 +118,37 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ mode = 'standard',
             <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 w-full">
               {/* Humidity */}
               <span className="text-[10px] uppercase tracking-widest opacity-70">HUM</span>
-              <span className="tabular-nums font-bold text-right text-[var(--color-fg)]">{data.current.humidity}%</span>
+              <span className="tabular-nums font-bold text-right text-[var(--color-fg)] whitespace-nowrap">{data.current.humidity}%</span>
 
               {/* Wind */}
               <span className="text-[10px] uppercase tracking-widest opacity-70">WIND</span>
-              <span className="tabular-nums font-bold text-right text-[var(--color-fg)]">{data.current.windSpeed} mph</span>
+              <span className="tabular-nums font-bold text-right text-[var(--color-fg)] whitespace-nowrap">{windSpeed} {windUnitLabel}</span>
 
               {/* Visibility */}
               <span className="text-[10px] uppercase tracking-widest opacity-70">VIS</span>
-              <span className="tabular-nums font-bold text-right text-[var(--color-fg)]">{data.current.visKm} km</span>
+              <span className="tabular-nums font-bold text-right text-[var(--color-fg)] whitespace-nowrap">{visibility} {visibilityUnitLabel}</span>
 
               {/* Feels Like */}
               <span className="text-[10px] uppercase tracking-widest opacity-70">FEELS</span>
-              <span className="tabular-nums font-bold text-right text-[var(--color-fg)]">{convertTemp(data.current.feelsLike, unit)}°</span>
+              <span className="tabular-nums font-bold text-right text-[var(--color-fg)] whitespace-nowrap">{convertTemp(data.current.feelsLike, unit)}°</span>
             </div>
           </div>
 
           {/* White Box: Hourly Forecast */}
-          <div className="col-span-2 flex items-center justify-between border-t border-[var(--color-border)] pt-2 mt-1">
-            {data.forecast.slice(0, 3).map((item, i) => (
-              <div key={i} className="flex flex-col items-center gap-0.5 w-1/3 text-[var(--color-fg)]">
-                <span className="text-[10px] font-mono opacity-50">{item.time}</span>
-                <span className="text-sm font-bold">{convertTemp(item.temp, unit)}°</span>
-                {/* Small icon for forecast */}
-                <div style={{ fontSize: '1.2rem', lineHeight: 1 }} className="opacity-80 text-[var(--color-accent)]">
-                  <WeatherIcon code={item.weatherCode || 0} isDay={item.isDay ?? 1} />
+          {showHourlyForecast && (
+            <div className="col-span-2 flex items-center justify-between border-t border-[var(--color-border)] pt-2 mt-1">
+              {data.forecast.slice(0, 3).map((item, i) => (
+                <div key={i} className="flex flex-col items-center gap-0.5 w-1/3 text-[var(--color-fg)]">
+                  <span className="text-[10px] font-mono opacity-50">{item.time}</span>
+                  <span className="text-sm font-bold">{convertTemp(item.temp, unit)}°</span>
+                  {/* Small icon for forecast */}
+                  <div style={{ fontSize: '1.2rem', lineHeight: 1 }} className="opacity-80 text-[var(--color-accent)]">
+                    <WeatherIcon code={item.weatherCode || 0} isDay={item.isDay ?? 1} />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
         </div>
       </div>
@@ -167,21 +174,21 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ mode = 'standard',
         {/* Row 1 */}
         <div className="flex items-center gap-3">
           <span className="text-[var(--color-muted)] w-8">humi</span>
-          <span className="text-[var(--color-fg)]">{data.current.humidity}%</span>
+          <span className="text-[var(--color-fg)] whitespace-nowrap">{data.current.humidity}%</span>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-[var(--color-muted)] w-8">wind</span>
-          <span className="text-[var(--color-fg)]">{data.current.windSpeed} mph</span>
+          <span className="text-[var(--color-fg)] whitespace-nowrap">{windSpeed} {windUnitLabel}</span>
         </div>
 
         {/* Row 2 */}
         <div className="flex items-center gap-3">
           <span className="text-[var(--color-muted)] w-8">prec</span>
-          <span className="text-[var(--color-fg)]">{data.current.precipProb}%</span>
+          <span className="text-[var(--color-fg)] whitespace-nowrap">{data.current.precipProb}%</span>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-[var(--color-muted)] w-8">feel</span>
-          <span className="text-[var(--color-fg)]">{convertTemp(data.current.feelsLike, unit)}°</span>
+          <span className="text-[var(--color-fg)] whitespace-nowrap">{convertTemp(data.current.feelsLike, unit)}°</span>
         </div>
       </div>
 
@@ -189,7 +196,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ mode = 'standard',
       <div className="flex-1 min-h-0"></div>
 
       {/* Hourly Forecast */}
-      {visibleForecastCount > 0 && (
+      {showHourlyForecast && visibleForecastCount > 0 && (
         <div className="flex-shrink-0 flex flex-col gap-1 border-t border-[var(--color-border)] border-opacity-30 pt-2 mt-2">
           {data.forecast.slice(0, visibleForecastCount).map((f, i) => (
             <div key={i} className="flex items-center text-sm font-mono">

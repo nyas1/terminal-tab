@@ -8,6 +8,7 @@ const DEFAULT_LAYOUTS: Layouts = {
   lg: [
     { i: 'settings-guard', x: 11, y: 0, w: 1, h: 1, static: true },
     { i: 'search', x: 2, y: 0, w: 7, h: 2, minW: 1, minH: 2 },
+    { i: 'spotify', x: 9, y: 0, w: 3, h: 3, minW: 2, minH: 2 },
     { i: 'datetime', x: 6, y: 2, w: 3, h: 3, minW: 1, minH: 2 },
     { i: 'stats', x: 5, y: 2, w: 1, h: 3, minW: 1, minH: 2 },
     { i: 'weather', x: 2, y: 2, w: 3, h: 9, minW: 1, minH: 2 },
@@ -18,8 +19,9 @@ const DEFAULT_LAYOUTS: Layouts = {
   md: [
     { i: 'search', x: 0, y: 0, w: 11, h: 2, minW: 2, minH: 2 },
     { i: 'settings-guard', x: 11, y: 0, w: 1, h: 1, static: true },
+    { i: 'spotify', x: 8, y: 2, w: 4, h: 4, minW: 2, minH: 2 },
     { i: 'datetime', x: 0, y: 2, w: 8, h: 4, minW: 2, minH: 2 },
-    { i: 'stats', x: 8, y: 2, w: 4, h: 4, minW: 2, minH: 2 },
+    { i: 'stats', x: 8, y: 6, w: 4, h: 3, minW: 2, minH: 2 },
     { i: 'weather', x: 0, y: 6, w: 4, h: 6, minW: 2, minH: 2 },
     { i: 'todo', x: 4, y: 6, w: 8, h: 6, minW: 2, minH: 2 },
     { i: 'links', x: 0, y: 12, w: 12, h: 4, minW: 2, minH: 2 },
@@ -28,12 +30,13 @@ const DEFAULT_LAYOUTS: Layouts = {
   sm: [
     { i: 'settings-guard', x: 5, y: 0, w: 1, h: 1, static: true },
     { i: 'search', x: 0, y: 0, w: 5, h: 2, minW: 2, minH: 2 },
-    { i: 'datetime', x: 0, y: 2, w: 6, h: 4, minW: 2, minH: 2 },
-    { i: 'stats', x: 0, y: 6, w: 6, h: 3, minW: 2, minH: 2 },
-    { i: 'weather', x: 0, y: 9, w: 6, h: 4, minW: 2, minH: 2 },
-    { i: 'todo', x: 0, y: 13, w: 6, h: 5, minW: 2, minH: 2 },
-    { i: 'links', x: 0, y: 18, w: 6, h: 4, minW: 2, minH: 2 },
-    { i: 'snake', x: 0, y: 22, w: 2, h: 4, minW: 1, minH: 2 }
+    { i: 'spotify', x: 0, y: 2, w: 6, h: 3, minW: 2, minH: 2 },
+    { i: 'datetime', x: 0, y: 5, w: 6, h: 4, minW: 2, minH: 2 },
+    { i: 'stats', x: 0, y: 9, w: 6, h: 3, minW: 2, minH: 2 },
+    { i: 'weather', x: 0, y: 12, w: 6, h: 4, minW: 2, minH: 2 },
+    { i: 'todo', x: 0, y: 16, w: 6, h: 5, minW: 2, minH: 2 },
+    { i: 'links', x: 0, y: 21, w: 6, h: 4, minW: 2, minH: 2 },
+    { i: 'snake', x: 0, y: 25, w: 2, h: 4, minW: 1, minH: 2 }
   ]
 };
 
@@ -183,6 +186,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         weather: true,
         todo: true,
         links: true,
+        spotify: false,
         donut: false,
         matrix: false,
         pipes: false,
@@ -334,6 +338,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             weather: true,
             todo: true,
             links: true,
+            spotify: false,
             donut: false,
             matrix: false,
             pipes: false,

@@ -13,7 +13,7 @@ export const TuiBox = forwardRef<HTMLDivElement, TuiBoxProps>(({ title, classNam
   return (
     <div
       ref={ref}
-      className={`border border-[var(--color-border)] bg-[var(--color-bg)] relative flex flex-col widget-rounded ${className}`}
+      className={`border border-[var(--color-border,#444444)] bg-[var(--color-bg,#222222)] relative flex flex-col widget-rounded ${className}`}
       style={{ ...props.style }}
       {...props}
     >
@@ -21,13 +21,13 @@ export const TuiBox = forwardRef<HTMLDivElement, TuiBoxProps>(({ title, classNam
       {showTitle ? (
         <div className="flex items-center justify-between pointer-events-none z-20" style={{ lineHeight: '1.2rem', marginTop: '-0.6rem' }}>
           <div
-            className="ml-3 bg-[var(--color-bg)] px-2 text-[var(--color-muted)] text-sm lowercase font-bold select-none cursor-move drag-handle pointer-events-auto"
+            className="ml-3 bg-[var(--color-bg,#222222)] px-2 text-[var(--color-muted,#888888)] text-sm lowercase font-bold select-none cursor-move drag-handle pointer-events-auto"
           >
             {title}
           </div>
           {onClose && (
             <div
-              className="mr-3 bg-[var(--color-bg)] px-2 text-[var(--color-muted)] hover:text-red-500 text-sm font-bold cursor-pointer pointer-events-auto"
+              className="mr-3 bg-[var(--color-bg,#222222)] px-2 text-[var(--color-muted,#888888)] hover:text-red-500 text-sm font-bold cursor-pointer pointer-events-auto"
               onClick={onClose}
             >
               [x]

@@ -24,6 +24,10 @@ const getEndpoint = () => {
   return '/api/spotify-now-playing';
 };
 
+/** Bordered art frame: fallbacks avoid a light border/flash before theme vars exist */
+const artFrame =
+  'min-h-0 w-full flex-1 flex items-center justify-center overflow-hidden border border-[var(--color-border,#444444)] bg-[var(--color-hover,#1a1a1a)]';
+
 export const SpotifyWidget: React.FC = () => {
   const [state, setState] = useState<WidgetState>({ status: 'loading' });
 
@@ -60,21 +64,18 @@ export const SpotifyWidget: React.FC = () => {
   }, []);
 
   const content = useMemo(() => {
-    const frame = 'border border-[var(--color-border)] bg-[var(--color-bg)]';
-    const artSize = 'w-[min(72%,9.5rem)] aspect-square max-h-[42%] shrink-0';
-
     if (state.status === 'loading') {
       return (
-        <div className={`flex flex-1 flex-col items-center justify-center ${frame} min-h-[4.5rem] w-full`}>
-          <span className="text-xs text-[var(--color-muted)] px-2 text-center">loading…</span>
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
+          <span className="text-xs text-[var(--color-muted,#888888)]">loading…</span>
         </div>
       );
     }
 
     if (state.status === 'error') {
       return (
-        <div className={`flex flex-1 flex-col items-center justify-center ${frame} min-h-[4.5rem] w-full`}>
-          <span className="text-xs text-[var(--color-muted)] px-2 text-center leading-snug">{state.message}</span>
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-1">
+          <span className="text-center text-xs leading-snug text-[var(--color-muted,#888888)]">{state.message}</span>
         </div>
       );
     }
@@ -82,44 +83,43 @@ export const SpotifyWidget: React.FC = () => {
     const { data } = state;
     if (!data.title || !data.artist) {
       return (
-        <div className="flex flex-1 flex-col items-center justify-start gap-3 pt-1 min-h-0 w-full">
-          <div className={`${artSize} ${frame} flex items-center justify-center`}>
-            <span className="text-[10px] text-[var(--color-muted)] px-2 text-center">—</span>
+        <div className="flex min-h-0 flex-1 flex-col gap-2">
+          <div className={artFrame}>
+            <span className="text-[10px] text-[var(--color-muted,#888888)]">—</span>
           </div>
-          <div className="w-full text-center px-1 min-w-0">
-            <p className="text-sm font-bold text-[var(--color-fg)] truncate">—</p>
-            <p className="text-xs text-[var(--color-muted)] truncate mt-1">nothing yet</p>
+          <div className="w-full shrink-0 text-center">
+            <p className="truncate text-sm font-bold text-[var(--color-fg,#e0e0e0)]">—</p>
+            <p className="mt-0.5 truncate text-xs text-[var(--color-muted,#888888)]">nothing yet</p>
           </div>
         </div>
       );
     }
 
     return (
-      <div className="flex flex-1 flex-col items-center justify-start gap-3 pt-1 min-h-0 w-full">
-        <div className={`${artSize} ${frame} overflow-hidden flex items-center justify-center`}>
+      <div className="flex min-h-0 flex-1 flex-col gap-2">
+        <div className={`${artFrame} p-1`}>
           {data.albumImageUrl ? (
             <img
               src={data.albumImageUrl}
               alt={data.album ? `${data.album} cover` : 'album cover'}
-              className="h-full w-full object-cover"
-              loading="lazy"
+              className="max-h-full max-w-full object-contain object-center"
+              decoding="async"
+              loading="eager"
             />
           ) : (
-            <span className="text-[10px] text-[var(--color-muted)] px-2 text-center">no art</span>
+            <span className="text-[10px] text-[var(--color-muted,#888888)]">no art</span>
           )}
         </div>
-        <div className="w-full text-center px-1 min-w-0 flex flex-col gap-1">
-          <p className="text-base sm:text-lg font-bold text-[var(--color-fg)] leading-tight truncate">
-            {data.title}
-          </p>
-          <p className="text-xs sm:text-sm text-[var(--color-muted)] font-mono truncate">{data.artist}</p>
+        <div className="w-full shrink-0 text-center">
+          <p className="truncate text-base font-bold leading-tight text-[var(--color-fg,#e0e0e0)] sm:text-lg">{data.title}</p>
+          <p className="mt-0.5 truncate font-mono text-xs text-[var(--color-muted,#888888)] sm:text-sm">{data.artist}</p>
         </div>
       </div>
     );
   }, [state]);
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col items-stretch overflow-hidden">
+    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
       {content}
     </div>
   );

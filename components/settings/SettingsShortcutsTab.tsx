@@ -47,6 +47,19 @@ export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
         onUpdateLinks(newGroups);
     };
 
+    const handleEditLink = (catIndex: number, linkIndex: number, field: 'label' | 'url', value: string) => {
+        const newGroups = [...linkGroups];
+        const group = newGroups[catIndex];
+        const link = group?.links?.[linkIndex];
+        if (!link) return;
+
+        group.links[linkIndex] = {
+            ...link,
+            [field]: value
+        };
+        onUpdateLinks(newGroups);
+    };
+
     const updateLinkInput = (catName: string, field: 'label' | 'url', value: string) => {
         setNewLinkInputs({
             ...newLinkInputs,
@@ -74,9 +87,19 @@ export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
                     <div className="space-y-2 mb-4">
                         {group.links.map((link, linkIdx) => (
                             <div key={linkIdx} className="flex items-center justify-between bg-[var(--color-hover)] p-2 px-3 text-sm">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 overflow-hidden">
-                                    <span className="text-[var(--color-fg)] font-bold min-w-[80px]">{link.label}</span>
-                                    <span className="text-[var(--color-muted)] truncate text-xs">{link.url}</span>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 overflow-hidden flex-1 pr-2">
+                                    <input
+                                        type="text"
+                                        className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full sm:w-1/3 select-text no-radius"
+                                        value={link.label}
+                                        onChange={(e) => handleEditLink(groupIdx, linkIdx, 'label', e.target.value)}
+                                    />
+                                    <input
+                                        type="text"
+                                        className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-muted)] px-2 py-1 text-xs focus:border-[var(--color-accent)] outline-none flex-1 select-text no-radius"
+                                        value={link.url}
+                                        onChange={(e) => handleEditLink(groupIdx, linkIdx, 'url', e.target.value)}
+                                    />
                                 </div>
                                 <button
                                     onClick={() => handleDeleteLink(groupIdx, linkIdx)}

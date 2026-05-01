@@ -2,13 +2,20 @@ const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
 const NOW_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing';
 const RECENTLY_PLAYED_ENDPOINT = 'https://api.spotify.com/v1/me/player/recently-played?limit=1';
 
+const createFailure = (stage, message, statusCode) => {
+  const error = new Error(message);
+  error.stage = stage;
+  if (statusCode) error.statusCode = statusCode;
+  return error;
+};
+
 const getAccessToken = async () => {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
   const refreshToken = process.env.SPOTIFY_REFRESH_TOKEN;
 
   if (!clientId || !clientSecret || !refreshToken) {
-    throw new Error('Missing Spotify environment variables');
+    throw createFailure('missing_env', 'Missing Spotify environment variables');
   }
 
   const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
@@ -27,7 +34,7 @@ const getAccessToken = async () => {
   });
 
   if (!tokenRes.ok) {
-    throw new Error(`Spotify token exchange failed: ${tokenRes.status}`);
+    throw createFailure('token_exchange_failed', `Spotify token exchange failed: ${tokenRes.status}`, tokenRes.status);
   }
 
   const tokenData = await tokenRes.json();
@@ -74,7 +81,7 @@ export default async function handler(req, res) {
       });
 
       if (!recentRes.ok) {
-        throw new Error(`Spotify recent track fetch failed: ${recentRes.status}`);
+        throw createFailure('recently_played_failed', `Spotify recent track fetch failed: ${recentRes.status}`, recentRes.status);
       }
 
       const recentData = await recentRes.json();
@@ -84,13 +91,16 @@ export default async function handler(req, res) {
       return;
     }
 
-    throw new Error(`Spotify now playing fetch failed: ${nowPlayingRes.status}`);
-  } catch (_error) {
+    throw createFailure('now_playing_failed', `Spotify now playing fetch failed: ${nowPlayingRes.status}`, nowPlayingRes.status);
+  } catch (error) {
     res.status(500).json({
       isPlaying: false,
       title: '',
       artist: '',
-      error: 'Spotify unavailable'
+      error: 'Spotify unavailable',
+      stage: error?.stage || 'unknown',
+      details: error?.message || 'Unexpected error',
+      statusCode: error?.statusCode || null
     });
   }
 }

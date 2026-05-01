@@ -8,6 +8,16 @@ export const useWeather = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const formatLocationName = (geoData: any): string => {
+    if (!geoData || typeof geoData !== 'object') return 'Unknown';
+
+    const locality = geoData.locality || geoData.localityInfo?.informative?.[0]?.name || '';
+    const city = geoData.city || geoData.locality || geoData.principalSubdivision || '';
+    const state = geoData.principalSubdivision || '';
+    const compact = locality || city || state;
+    return compact || 'Unknown';
+  };
+
   const fetchWeather = useCallback(async (lat: number, lon: number, options: { defaultCity?: string, showError?: boolean } = {}) => {
     const { defaultCity, showError = true } = options;
 
@@ -19,8 +29,8 @@ export const useWeather = () => {
           try {
             const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
             const geoData = await geoRes.json();
-            if (geoData.city) resolvedCity = geoData.city;
-            else if (geoData.locality) resolvedCity = geoData.locality;
+            const formattedLocation = formatLocationName(geoData);
+            if (formattedLocation) resolvedCity = formattedLocation;
           } catch (e) { /* ignore */ }
         }
         return resolvedCity;

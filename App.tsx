@@ -173,7 +173,7 @@ function AppContent() {
                 case 'maze':
                     return <TuiBox {...boxProps}><MazeWidget speed={funOptions.maze.speed} /></TuiBox>;
                 case 'spotify':
-                    return <TuiBox {...boxProps} title="spotify-now-playing"><SpotifyWidget /></TuiBox>;
+                    return <TuiBox {...boxProps} title="spotify"><SpotifyWidget /></TuiBox>;
                 default:
                     return null;
             }

@@ -96,21 +96,8 @@ export const SpotifyWidget: React.FC = () => {
         )}
 
         <div className="min-w-0 flex-1">
-          <div className="text-xs text-[var(--color-accent)] mb-1">
-            {data.isPlaying ? 'Now Playing' : 'Recently Played'}
-          </div>
           <div className="font-mono text-sm text-[var(--color-fg)] truncate">{data.title}</div>
           <div className="font-mono text-xs text-[var(--color-muted)] truncate">{data.artist}</div>
-          {data.songUrl ? (
-            <a
-              href={data.songUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-block text-xs text-[var(--color-accent)] hover:underline mt-1"
-            >
-              open in spotify
-            </a>
-          ) : null}
           {!data.isPlaying && data.playedAt ? (
             <div className="text-[10px] text-[var(--color-muted)] mt-1">{formatPlayedAt(data.playedAt)}</div>
           ) : null}

@@ -15,7 +15,14 @@ type WidgetState =
   | { status: 'error'; message: string }
   | { status: 'success'; data: SpotifyNowPlaying };
 
-const ENDPOINT = '/api/spotify-now-playing';
+const getEndpoint = () => {
+  const envBase = (import.meta.env.VITE_SPOTIFY_API_BASE_URL || '').trim();
+  const configuredBase = envBase.replace(/\/+$/, '');
+  if (configuredBase) {
+    return `${configuredBase}/api/spotify-now-playing`;
+  }
+  return '/api/spotify-now-playing';
+};
 
 const formatPlayedAt = (iso?: string) => {
   if (!iso) return '';
@@ -29,10 +36,11 @@ export const SpotifyWidget: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
+    const endpoint = getEndpoint();
 
     const fetchNowPlaying = async () => {
       try {
-        const res = await fetch(ENDPOINT, { cache: 'no-store' });
+        const res = await fetch(endpoint, { cache: 'no-store' });
         if (!res.ok) {
           throw new Error(`API error: ${res.status}`);
         }
@@ -41,7 +49,11 @@ export const SpotifyWidget: React.FC = () => {
         setState({ status: 'success', data });
       } catch (_error) {
         if (!isMounted) return;
-        setState({ status: 'error', message: 'spotify unavailable' });
+        const isExtension = window.location.protocol === 'moz-extension:';
+        setState({
+          status: 'error',
+          message: isExtension ? 'set VITE_SPOTIFY_API_BASE_URL for extension build' : 'spotify unavailable'
+        });
       }
     };
 

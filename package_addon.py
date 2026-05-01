@@ -23,7 +23,7 @@ def create_xpi(source_dir, output_filename):
 # Paths
 base_dir = os.path.dirname(os.path.abspath(__file__))
 addon_dir = os.path.join(base_dir, "firefox_addon")
-output_xpi = os.path.join(base_dir, "pixel-start-v2.2.xpi")
+output_xpi = os.path.join(base_dir, "pixel-start-v2.3.xpi")
 
 if __name__ == "__main__":
     if os.path.exists(output_xpi):

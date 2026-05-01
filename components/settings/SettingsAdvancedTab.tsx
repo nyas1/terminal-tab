@@ -6,6 +6,8 @@ import { SearchEngineId } from '../../types';
 interface SettingsAdvancedTabProps {
     showWidgetTitles: boolean;
     onToggleWidgetTitles: () => void;
+    showFavicons: boolean;
+    onToggleShowFavicons: () => void;
     reserveSettingsSpace: boolean;
     onToggleReserveSettings: () => void;
     customFont: string;
@@ -60,6 +62,8 @@ interface SettingsAdvancedTabProps {
 export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
     showWidgetTitles,
     onToggleWidgetTitles,
+    showFavicons,
+    onToggleShowFavicons,
     reserveSettingsSpace,
     onToggleReserveSettings,
     customFont,
@@ -143,6 +147,16 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                             {reserveSettingsSpace ? '[x]' : '[ ]'}
                         </span>
                         <span className="text-[var(--color-fg)] text-sm group-hover:text-[var(--color-fg)]">Reserve Settings Space</span>
+                    </div>
+
+                    <div
+                        onClick={onToggleShowFavicons}
+                        className="flex items-center gap-2 cursor-pointer select-none group mt-3"
+                    >
+                        <span className="font-mono text-[var(--color-accent)] font-bold">
+                            {showFavicons ? '[x]' : '[ ]'}
+                        </span>
+                        <span className="text-[var(--color-fg)] text-sm group-hover:text-[var(--color-fg)]">Show Favicons</span>
                     </div>
 
                     <div className="flex flex-col gap-1 mt-2">
@@ -619,7 +633,7 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
             </div>
 
             <div className="text-[10px] text-[var(--color-muted)] mt-6 text-center opacity-50 font-mono">
-                v2.2
+                v2.3
             </div>
         </div>
     );

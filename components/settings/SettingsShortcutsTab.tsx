@@ -11,7 +11,9 @@ export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
     onUpdateLinks,
 }) => {
     const [newCatName, setNewCatName] = useState('');
-    const [newLinkInputs, setNewLinkInputs] = useState<Record<string, { label: string, url: string }>>({});
+    const [newLinkInputs, setNewLinkInputs] = useState<Record<string, { label: string, url: string, favicon: string }>>({});
+    const [draggedGroupIndex, setDraggedGroupIndex] = useState<number | null>(null);
+    const [draggedLink, setDraggedLink] = useState<{ groupIndex: number; linkIndex: number } | null>(null);
 
     const handleAddCategory = () => {
         if (!newCatName.trim()) return;
@@ -37,17 +39,21 @@ export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
 
     const handleAddLink = (catIndex: number) => {
         const catName = linkGroups[catIndex].category;
-        const input = newLinkInputs[catName] || { label: '', url: '' };
+        const input = newLinkInputs[catName] || { label: '', url: '', favicon: '' };
 
         if (!input.label.trim() || !input.url.trim()) return;
 
         const newGroups = [...linkGroups];
-        newGroups[catIndex].links.push({ ...input });
+        newGroups[catIndex].links.push({
+            label: input.label,
+            url: input.url,
+            favicon: input.favicon.trim() || undefined
+        });
         onUpdateLinks(newGroups);
 
         setNewLinkInputs({
             ...newLinkInputs,
-            [catName]: { label: '', url: '' }
+            [catName]: { label: '', url: '', favicon: '' }
         });
     };
 
@@ -57,7 +63,7 @@ export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
         onUpdateLinks(newGroups);
     };
 
-    const handleEditLink = (catIndex: number, linkIndex: number, field: 'label' | 'url', value: string) => {
+    const handleEditLink = (catIndex: number, linkIndex: number, field: 'label' | 'url' | 'favicon', value: string) => {
         const newGroups = [...linkGroups];
         const group = newGroups[catIndex];
         const link = group?.links?.[linkIndex];
@@ -70,11 +76,35 @@ export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
         onUpdateLinks(newGroups);
     };
 
-    const updateLinkInput = (catName: string, field: 'label' | 'url', value: string) => {
+    const moveGroup = (fromIndex: number, toIndex: number) => {
+        if (fromIndex === toIndex) return;
+        if (fromIndex < 0 || toIndex < 0) return;
+        if (fromIndex >= linkGroups.length || toIndex >= linkGroups.length) return;
+
+        const nextGroups = [...linkGroups];
+        const [movedGroup] = nextGroups.splice(fromIndex, 1);
+        nextGroups.splice(toIndex, 0, movedGroup);
+        onUpdateLinks(nextGroups);
+    };
+
+    const moveLink = (fromGroupIndex: number, fromLinkIndex: number, toGroupIndex: number, toLinkIndex: number) => {
+        const nextGroups = [...linkGroups];
+        const sourceGroup = nextGroups[fromGroupIndex];
+        const targetGroup = nextGroups[toGroupIndex];
+        if (!sourceGroup || !targetGroup) return;
+        if (!sourceGroup.links[fromLinkIndex]) return;
+
+        const [movedLink] = sourceGroup.links.splice(fromLinkIndex, 1);
+        const boundedIndex = Math.max(0, Math.min(toLinkIndex, targetGroup.links.length));
+        targetGroup.links.splice(boundedIndex, 0, movedLink);
+        onUpdateLinks(nextGroups);
+    };
+
+    const updateLinkInput = (catName: string, field: 'label' | 'url' | 'favicon', value: string) => {
         setNewLinkInputs({
             ...newLinkInputs,
             [catName]: {
-                ...(newLinkInputs[catName] || { label: '', url: '' }),
+                ...(newLinkInputs[catName] || { label: '', url: '', favicon: '' }),
                 [field]: value
             }
         });
@@ -83,8 +113,29 @@ export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
     return (
         <div className="space-y-6">
             {linkGroups.map((group, groupIdx) => (
-                <div key={groupIdx} className="border border-[var(--color-border)] p-4 relative no-radius">
+                <div
+                    key={groupIdx}
+                    className={`border border-[var(--color-border)] p-4 relative no-radius ${draggedGroupIndex === groupIdx ? 'opacity-70' : ''}`}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                        e.preventDefault();
+                        if (draggedGroupIndex !== null) {
+                            moveGroup(draggedGroupIndex, groupIdx);
+                        }
+                        setDraggedGroupIndex(null);
+                    }}
+                >
                     <div className="flex justify-between items-center mb-3">
+                        <button
+                            type="button"
+                            draggable
+                            onDragStart={() => setDraggedGroupIndex(groupIdx)}
+                            onDragEnd={() => setDraggedGroupIndex(null)}
+                            className="text-[var(--color-muted)] hover:text-[var(--color-fg)] text-xs mr-2 cursor-move"
+                            title="Drag to reorder group"
+                        >
+                            [::]
+                        </button>
                         <input
                             type="text"
                             className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-accent)] font-bold px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full mr-3 select-text no-radius"
@@ -101,8 +152,28 @@ export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
 
                     <div className="space-y-2 mb-4">
                         {group.links.map((link, linkIdx) => (
-                            <div key={linkIdx} className="flex items-center justify-between bg-[var(--color-hover)] p-2 px-3 text-sm">
+                            <div
+                                key={linkIdx}
+                                className={`flex items-center justify-between bg-[var(--color-hover)] p-2 px-3 text-sm ${draggedLink?.groupIndex === groupIdx && draggedLink?.linkIndex === linkIdx ? 'opacity-70' : ''}`}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    if (!draggedLink) return;
+                                    moveLink(draggedLink.groupIndex, draggedLink.linkIndex, groupIdx, linkIdx);
+                                    setDraggedLink(null);
+                                }}
+                            >
                                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 overflow-hidden flex-1 pr-2">
+                                    <button
+                                        type="button"
+                                        draggable
+                                        onDragStart={() => setDraggedLink({ groupIndex: groupIdx, linkIndex: linkIdx })}
+                                        onDragEnd={() => setDraggedLink(null)}
+                                        className="text-[var(--color-muted)] hover:text-[var(--color-fg)] text-xs cursor-move self-start sm:self-center"
+                                        title="Drag to reorder shortcut"
+                                    >
+                                        [::]
+                                    </button>
                                     <input
                                         type="text"
                                         className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full sm:w-1/3 select-text no-radius"
@@ -115,6 +186,13 @@ export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
                                         value={link.url}
                                         onChange={(e) => handleEditLink(groupIdx, linkIdx, 'url', e.target.value)}
                                     />
+                                    <input
+                                        type="text"
+                                        placeholder="favicon override URL"
+                                        className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-muted)] px-2 py-1 text-xs focus:border-[var(--color-accent)] outline-none flex-1 select-text no-radius"
+                                        value={link.favicon || ''}
+                                        onChange={(e) => handleEditLink(groupIdx, linkIdx, 'favicon', e.target.value)}
+                                    />
                                 </div>
                                 <button
                                     onClick={() => handleDeleteLink(groupIdx, linkIdx)}
@@ -124,6 +202,20 @@ export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
                                 </button>
                             </div>
                         ))}
+                        {group.links.length > 0 && (
+                            <div
+                                className="text-[10px] text-[var(--color-muted)] border border-dashed border-[var(--color-border)] px-2 py-1"
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    if (!draggedLink) return;
+                                    moveLink(draggedLink.groupIndex, draggedLink.linkIndex, groupIdx, group.links.length);
+                                    setDraggedLink(null);
+                                }}
+                            >
+                                drop here to move to end
+                            </div>
+                        )}
                     </div>
 
 
@@ -141,6 +233,13 @@ export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
                             className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none flex-1 select-text no-radius"
                             value={newLinkInputs[group.category]?.url || ''}
                             onChange={(e) => updateLinkInput(group.category, 'url', e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="favicon URL (optional)"
+                            className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none flex-1 select-text no-radius"
+                            value={newLinkInputs[group.category]?.favicon || ''}
+                            onChange={(e) => updateLinkInput(group.category, 'favicon', e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleAddLink(groupIdx)}
                         />
                         <button

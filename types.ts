@@ -38,6 +38,7 @@ export interface TodoItem {
 export interface Link {
   label: string;
   url: string;
+  favicon?: string;
 }
 
 export interface LinkGroup {

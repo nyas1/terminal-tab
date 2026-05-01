@@ -35,6 +35,7 @@ export const Settings: React.FC = () => {
         searchDefaultEngine, setSearchDefaultEngine,
         searchEnabledEngines, setSearchEnabledEngines,
         searchSlashHotkeyEnabled, setSearchSlashHotkeyEnabled,
+        showFavicons, setShowFavicons,
         weatherLocation, setWeatherLocation,
     } = useAppContext();
 
@@ -151,7 +152,7 @@ export const Settings: React.FC = () => {
                 onClick={toggleModal}
             >
                 <div className={`text-[var(--color-muted)] transition-opacity duration-200 ${isButtonVisible || isModalOpen ? 'opacity-100' : 'opacity-0'}`}>
-                    ( settings )
+                    [settings]
                 </div>
             </div>
 
@@ -270,6 +271,8 @@ export const Settings: React.FC = () => {
                                 <SettingsAdvancedTab
                                     showWidgetTitles={showWidgetTitles}
                                     onToggleWidgetTitles={() => setShowWidgetTitles(!showWidgetTitles)}
+                                    showFavicons={showFavicons}
+                                    onToggleShowFavicons={() => setShowFavicons(!showFavicons)}
                                     reserveSettingsSpace={reserveSettingsSpace}
                                     onToggleReserveSettings={() => setReserveSettingsSpace(!reserveSettingsSpace)}
                                     customFont={customFont}

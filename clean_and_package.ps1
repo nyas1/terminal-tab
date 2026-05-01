@@ -23,10 +23,10 @@ python package_addon.py
 python package_source.py
 
 Write-Host "Renaming Artifacts..."
-if (Test-Path "pixel-start-v2.2.xpi") {
-    Move-Item "pixel-start-v2.2.xpi" "pixel-start-CLEAN-v2.2.xpi" -Force
+if (Test-Path "pixel-start-v2.3.xpi") {
+    Move-Item "pixel-start-v2.3.xpi" "pixel-start-CLEAN-v2.3.xpi" -Force
 }
-if (Test-Path "pixel-start-source-v2.2.zip") {
-    Move-Item "pixel-start-source-v2.2.zip" "pixel-start-source-CLEAN-v2.2.zip" -Force
+if (Test-Path "pixel-start-source-v2.3.zip") {
+    Move-Item "pixel-start-source-v2.3.zip" "pixel-start-source-CLEAN-v2.3.zip" -Force
 }
 Write-Host "Done."

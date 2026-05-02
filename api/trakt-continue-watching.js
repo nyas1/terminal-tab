@@ -1,5 +1,6 @@
 const TRAKT_TOKEN_ENDPOINT = 'https://api.trakt.tv/oauth/token';
 const TRAKT_PLAYBACK_ENDPOINT = 'https://api.trakt.tv/sync/playback/episodes?extended=full,show';
+const TRAKT_WATCHED_SHOWS_ENDPOINT = 'https://api.trakt.tv/sync/watched/shows';
 const USER_AGENT = 'TerminalTab/1.0 (+https://github.com/nyas1/terminal-tab)';
 const TOKEN_SKEW_SECONDS = 60;
 
@@ -13,6 +14,8 @@ let playbackCache = {
   items: null,
   expiresAtMs: 0
 };
+let showCache = new Map();
+let seasonCache = new Map();
 
 const createFailure = (stage, message, statusCode) => {
   const error = new Error(message);
@@ -111,15 +114,78 @@ const getAccessToken = async () => {
   return { accessToken: tokenData.access_token, clientId };
 };
 
-const mapPlaybackItem = (item) => {
+const traktHeaders = (accessToken, clientId) => ({
+  Authorization: `Bearer ${accessToken}`,
+  'Content-Type': 'application/json',
+  Accept: 'application/json',
+  'User-Agent': USER_AGENT,
+  'trakt-api-key': clientId,
+  'trakt-api-version': '2'
+});
+
+const getShowMeta = async (accessToken, clientId, slug) => {
+  if (!slug) return { posterUrl: '', episodes: null, airedEpisodes: null };
+  const key = String(slug);
+  const now = Date.now();
+  const cached = showCache.get(key);
+  if (cached && cached.expiresAtMs > now) return cached.value;
+  const res = await fetch(`https://api.trakt.tv/shows/${encodeURIComponent(slug)}?extended=full`, {
+    headers: traktHeaders(accessToken, clientId)
+  });
+  if (!res.ok) return { posterUrl: '', episodes: null, airedEpisodes: null };
+  const body = await res.json();
+  const value = {
+    posterUrl:
+      body?.images?.poster?.thumb ||
+      body?.images?.poster?.medium ||
+      body?.images?.poster?.full ||
+      '',
+    episodes: Number.isFinite(body?.episodes) ? body.episodes : null,
+    airedEpisodes: Number.isFinite(body?.aired_episodes) ? body.aired_episodes : null
+  };
+  showCache.set(key, { value, expiresAtMs: now + 10 * 60 * 1000 });
+  return value;
+};
+
+const getSeasonStats = async (accessToken, clientId, slug, season) => {
+  if (!slug || season == null) return { airedEpisodes: null, totalEpisodes: null };
+  const key = `${slug}:${season}`;
+  const now = Date.now();
+  const cached = seasonCache.get(key);
+  if (cached && cached.expiresAtMs > now) return cached.value;
+  const res = await fetch(
+    `https://api.trakt.tv/shows/${encodeURIComponent(slug)}/seasons/${encodeURIComponent(String(season))}/episodes?extended=full`,
+    { headers: traktHeaders(accessToken, clientId) }
+  );
+  if (!res.ok) return { airedEpisodes: null, totalEpisodes: null };
+  const episodes = await res.json();
+  if (!Array.isArray(episodes)) return { airedEpisodes: null, totalEpisodes: null };
+  const totalEpisodes = episodes.length;
+  const nowTs = Date.now();
+  const airedEpisodes = episodes.filter((ep) => {
+    const t = new Date(ep?.first_aired || '').getTime();
+    return Number.isFinite(t) && t <= nowTs;
+  }).length;
+  const value = { airedEpisodes, totalEpisodes };
+  seasonCache.set(key, { value, expiresAtMs: now + 10 * 60 * 1000 });
+  return value;
+};
+
+const mapPlaybackItem = async (item, accessToken, clientId) => {
   const showTitle = item?.show?.title || 'Unknown show';
   const episodeTitle = item?.episode?.title || '';
   const slug = item?.show?.ids?.slug || '';
-  const tmdbId = item?.show?.ids?.tmdb || null;
   const season = item?.episode?.season ?? null;
   const number = item?.episode?.number ?? null;
   const progress = Number.isFinite(item?.progress) ? Math.round(item.progress) : 0;
   const updatedAt = item?.paused_at || item?.updated_at || '';
+  const [showMeta, seasonStats] = await Promise.all([
+    getShowMeta(accessToken, clientId, slug),
+    getSeasonStats(accessToken, clientId, slug, season)
+  ]);
+  const watchedEpisodes = number != null ? number : null;
+  const airedEpisodes = seasonStats.airedEpisodes ?? watchedEpisodes;
+  const totalEpisodes = seasonStats.totalEpisodes;
   return {
     id: item?.id || `${slug || 'show'}-${season || 0}-${number || 0}`,
     showTitle,
@@ -129,13 +195,57 @@ const mapPlaybackItem = (item) => {
     number,
     progress,
     updatedAt,
-    posterUrl: tmdbId ? `https://image.tmdb.org/t/p/w92/${tmdbId}.jpg` : '',
+    watchedEpisodes,
+    airedEpisodes,
+    totalEpisodes,
+    posterUrl: showMeta.posterUrl,
     url:
       slug && season != null && number != null
         ? `https://trakt.tv/shows/${slug}/seasons/${season}/episodes/${number}`
         : slug
           ? `https://trakt.tv/shows/${slug}`
           : 'https://trakt.tv/'
+  };
+};
+
+const mapContinueWatchingShow = async (item, accessToken, clientId) => {
+  const slug = item?.show?.ids?.slug || '';
+  if (!slug) return null;
+  const progressRes = await fetch(
+    `https://api.trakt.tv/shows/${encodeURIComponent(slug)}/progress/watched?hidden=false&specials=false&count_specials=false`,
+    { headers: traktHeaders(accessToken, clientId) }
+  );
+  if (!progressRes.ok) return null;
+  const progress = await progressRes.json();
+  const hasNext = Boolean(progress?.next_episode?.season != null && progress?.next_episode?.number != null);
+  const watched = Number(progress?.completed ?? 0);
+  const aired = Number(progress?.aired ?? 0);
+  if (!hasNext && !(Number.isFinite(watched) && Number.isFinite(aired) && watched < aired)) {
+    return null;
+  }
+  const [showMeta, seasonStats] = await Promise.all([
+    getShowMeta(accessToken, clientId, slug),
+    getSeasonStats(accessToken, clientId, slug, progress?.next_episode?.season ?? null)
+  ]);
+  const season = progress?.next_episode?.season ?? null;
+  const number = progress?.next_episode?.number ?? null;
+  return {
+    id: `continue-${slug}`,
+    showTitle: item?.show?.title || 'Unknown show',
+    episodeTitle: progress?.next_episode?.title || '',
+    slug,
+    season,
+    number,
+    progress: 0,
+    updatedAt: progress?.last_watched_at || item?.last_watched_at || '',
+    watchedEpisodes: Number.isFinite(watched) ? watched : null,
+    airedEpisodes: seasonStats.airedEpisodes ?? (Number.isFinite(aired) ? aired : null),
+    totalEpisodes: showMeta.episodes ?? showMeta.airedEpisodes ?? seasonStats.totalEpisodes,
+    posterUrl: showMeta.posterUrl,
+    url:
+      slug && season != null && number != null
+        ? `https://trakt.tv/shows/${slug}/seasons/${season}/episodes/${number}`
+        : `https://trakt.tv/shows/${slug}`
   };
 };
 
@@ -171,14 +281,7 @@ export default async function handler(req, res) {
   try {
     const { accessToken, clientId } = await getAccessToken();
     const playbackRes = await fetch(TRAKT_PLAYBACK_ENDPOINT, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'User-Agent': USER_AGENT,
-        'trakt-api-key': clientId,
-        'trakt-api-version': '2'
-      }
+      headers: traktHeaders(accessToken, clientId)
     });
 
     if (!playbackRes.ok) {
@@ -186,19 +289,36 @@ export default async function handler(req, res) {
     }
 
     const body = await playbackRes.json();
-    const items = (Array.isArray(body) ? body : [])
-      .map(mapPlaybackItem)
+    const playbackItems = await Promise.all((Array.isArray(body) ? body : []).map((entry) => mapPlaybackItem(entry, accessToken, clientId)));
+    const watchedRes = await fetch(TRAKT_WATCHED_SHOWS_ENDPOINT, {
+      headers: traktHeaders(accessToken, clientId)
+    });
+    let continueItems = [];
+    if (watchedRes.ok) {
+      const watchedBody = await watchedRes.json();
+      const watchedShows = (Array.isArray(watchedBody) ? watchedBody : [])
+        .sort((a, b) => new Date(b?.last_watched_at || '').getTime() - new Date(a?.last_watched_at || '').getTime())
+        .slice(0, Math.max(limit * 3, 12));
+      continueItems = (await Promise.all(watchedShows.map((entry) => mapContinueWatchingShow(entry, accessToken, clientId)))).filter(Boolean);
+    }
+    const deduped = new Map();
+    for (const entry of [...playbackItems, ...continueItems]) {
+      const key = entry?.slug || String(entry?.id || '');
+      if (!key || deduped.has(key)) continue;
+      deduped.set(key, entry);
+    }
+    const normalizedItems = Array.from(deduped.values())
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       .slice(0, limit);
 
     playbackCache = {
       limit,
-      items,
+      items: normalizedItems,
       expiresAtMs: now + 10 * 60 * 1000
     };
 
     res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=1800');
-    res.status(200).json({ items });
+    res.status(200).json({ items: normalizedItems });
   } catch (error) {
     const statusCode = error?.statusCode || 500;
     res.status(statusCode).json({

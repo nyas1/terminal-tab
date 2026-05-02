@@ -10,6 +10,9 @@ type TraktItem = {
   number: number | null;
   progress: number;
   updatedAt: string;
+  watchedEpisodes?: number | null;
+  airedEpisodes?: number | null;
+  totalEpisodes?: number | null;
   posterUrl?: string;
   url: string;
 };
@@ -52,9 +55,11 @@ const getRelativeAge = (updatedAt: string): string => {
   return `${Math.floor(diffHr / 24)}d`;
 };
 
-const episodeCode = (season: number | null, number: number | null): string => {
-  if (season == null || number == null) return '--';
-  return `S${String(season).padStart(2, '0')}E${String(number).padStart(2, '0')}`;
+const formatProgress = (item: TraktItem): string => {
+  const watched = item.watchedEpisodes ?? item.number ?? 0;
+  const aired = item.airedEpisodes ?? watched;
+  const total = item.totalEpisodes ?? '?';
+  return `${watched}/[${aired}]${total}`;
 };
 
 export const TraktWidget: React.FC = () => {
@@ -138,7 +143,7 @@ export const TraktWidget: React.FC = () => {
               <div className="min-w-0">
                 <p className="truncate text-xs text-[var(--color-fg,#e0e0e0)]">{item.showTitle}</p>
                 <p className="font-mono text-[10px] text-[var(--color-muted,#888888)]">
-                  {episodeCode(item.season, item.number)} {item.progress}% - {getRelativeAge(item.updatedAt)}
+                    {formatProgress(item)} - {getRelativeAge(item.updatedAt)}
                 </p>
               </div>
             </a>

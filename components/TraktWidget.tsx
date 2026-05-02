@@ -9,6 +9,7 @@ type TraktItem = {
   number: number | null;
   progress: number;
   updatedAt: string;
+  posterUrl?: string;
   url: string;
 };
 
@@ -124,19 +125,20 @@ export const TraktWidget: React.FC = () => {
               href={item.url}
               target="_blank"
               rel="noreferrer"
-              className="block hover:text-[var(--color-accent)]"
+              className="flex items-center gap-2 hover:text-[var(--color-accent)]"
               title={`${item.showTitle}${item.episodeTitle ? ` — ${item.episodeTitle}` : ''}`}
             >
-              <div className="flex items-start justify-between gap-2">
-                <span className="truncate font-mono text-[10px] text-[var(--color-muted,#888888)]">
-                  {episodeCode(item.season, item.number)} · {item.progress}%
-                </span>
-                <span className="font-mono text-[10px] text-[var(--color-muted,#888888)]">{getRelativeAge(item.updatedAt)}</span>
+              {item.posterUrl ? (
+                <img src={item.posterUrl} alt="" className="h-10 w-7 shrink-0 object-cover" loading="lazy" />
+              ) : (
+                <div className="h-10 w-7 shrink-0 border border-[var(--color-border)]" />
+              )}
+              <div className="min-w-0">
+                <p className="truncate text-xs text-[var(--color-fg,#e0e0e0)]">{item.showTitle}</p>
+                <p className="font-mono text-[10px] text-[var(--color-muted,#888888)]">
+                  {episodeCode(item.season, item.number)} {item.progress}% - {getRelativeAge(item.updatedAt)}
+                </p>
               </div>
-              <p className="truncate text-xs text-[var(--color-fg,#e0e0e0)]">{item.showTitle}</p>
-              {item.episodeTitle ? (
-                <p className="truncate text-[10px] text-[var(--color-muted,#888888)]">{item.episodeTitle}</p>
-              ) : null}
             </a>
           </li>
         ))}

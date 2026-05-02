@@ -81,6 +81,7 @@ const mapPlaybackItem = (item) => {
   const showTitle = item?.show?.title || 'Unknown show';
   const episodeTitle = item?.episode?.title || '';
   const slug = item?.show?.ids?.slug || '';
+  const tmdbId = item?.show?.ids?.tmdb || null;
   const season = item?.episode?.season ?? null;
   const number = item?.episode?.number ?? null;
   const progress = Number.isFinite(item?.progress) ? Math.round(item.progress) : 0;
@@ -94,6 +95,7 @@ const mapPlaybackItem = (item) => {
     number,
     progress,
     updatedAt,
+    posterUrl: tmdbId ? `https://image.tmdb.org/t/p/w92/${tmdbId}.jpg` : '',
     url:
       slug && season != null && number != null
         ? `https://trakt.tv/shows/${slug}/seasons/${season}/episodes/${number}`

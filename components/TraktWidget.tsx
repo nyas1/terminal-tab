@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { SyncIcon } from '@primer/octicons-react';
 import { useAppContext } from '../contexts/AppContext';
 
 type TraktItem = {
@@ -68,7 +69,7 @@ export const TraktWidget: React.FC = () => {
     const fetchItems = async () => {
       try {
         const isExtension = window.location.protocol === 'moz-extension:';
-        const res = await fetch(endpoint, { cache: 'no-store' });
+        const res = await fetch(endpoint);
         if (!res.ok) {
           const status = res.status;
           let parsed: TraktApiErrorBody | null = null;
@@ -153,9 +154,11 @@ export const TraktWidget: React.FC = () => {
         <button
           type="button"
           onClick={() => setRefreshNonce((v) => v + 1)}
+          aria-label="Refresh Trakt"
+          title="Refresh"
           className="border border-[var(--color-border)] px-1.5 py-0.5 text-[10px] font-mono no-radius text-[var(--color-muted)] hover:text-[var(--color-fg)]"
         >
-          [REFRESH]
+          <SyncIcon size={12} />
         </button>
       </div>
       {content}

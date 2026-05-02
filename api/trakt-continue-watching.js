@@ -8,6 +8,11 @@ let tokenCache = {
   clientId: '',
   expiresAtMs: 0
 };
+let playbackCache = {
+  limit: 0,
+  items: null,
+  expiresAtMs: 0
+};
 
 const createFailure = (stage, message, statusCode) => {
   const error = new Error(message);
@@ -151,6 +156,17 @@ export default async function handler(req, res) {
   }
 
   const limit = parseLimit(req.query?.limit);
+  const now = Date.now();
+
+  if (
+    Array.isArray(playbackCache.items) &&
+    playbackCache.limit === limit &&
+    playbackCache.expiresAtMs > now
+  ) {
+    res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=1800');
+    res.status(200).json({ items: playbackCache.items });
+    return;
+  }
 
   try {
     const { accessToken, clientId } = await getAccessToken();
@@ -175,7 +191,13 @@ export default async function handler(req, res) {
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       .slice(0, limit);
 
-    res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=120');
+    playbackCache = {
+      limit,
+      items,
+      expiresAtMs: now + 10 * 60 * 1000
+    };
+
+    res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=1800');
     res.status(200).json({ items });
   } catch (error) {
     const statusCode = error?.statusCode || 500;

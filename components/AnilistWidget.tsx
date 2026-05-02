@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { SyncIcon } from '@primer/octicons-react';
 import { useAppContext } from '../contexts/AppContext';
 
 type AnilistEntry = {
@@ -294,9 +295,11 @@ export const AnilistWidget: React.FC = () => {
         <button
           type="button"
           onClick={() => setRefreshNonce((v) => v + 1)}
+          aria-label="Refresh AniList"
+          title="Refresh"
           className="border border-[var(--color-border)] px-1.5 py-0.5 text-[10px] font-mono no-radius text-[var(--color-muted)] hover:text-[var(--color-fg)]"
         >
-          [REFRESH]
+          <SyncIcon size={12} />
         </button>
       </div>
       {content}

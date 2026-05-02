@@ -46,6 +46,17 @@ export default async function handler(req, res) {
   const body = parseBody(req);
 
   try {
+    if (action === 'debug') {
+      const maskedId = clientId ? `${clientId.slice(0, 4)}...${clientId.slice(-4)}` : '';
+      return json(res, 200, {
+        ok: true,
+        hasClientId: Boolean(clientId),
+        hasClientSecret: Boolean(clientSecret),
+        clientIdLength: clientId.length,
+        clientIdMask: maskedId
+      });
+    }
+
     if (action === 'device-code') {
       const upstream = await fetch(`${TRAKT_API_BASE}/oauth/device/code`, {
         method: 'POST',

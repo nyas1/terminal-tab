@@ -57,14 +57,54 @@ export default async function handler(req, res) {
       });
     }
 
+    if (action === 'device-code-probe') {
+      const upstream = await fetch(`${TRAKT_API_BASE}/oauth/device/code`, {
+        method: 'POST',
+        headers: traktOAuthHeaders(clientId),
+        body: JSON.stringify({ client_id: clientId })
+      });
+      const contentType = upstream.headers.get('content-type') || '';
+      const raw = await upstream.text();
+      let parsed = null;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        /* not JSON */
+      }
+      return json(res, 200, {
+        ok: upstream.ok,
+        upstreamStatus: upstream.status,
+        contentType,
+        rawPreview: raw.slice(0, 2000),
+        parsed
+      });
+    }
+
     if (action === 'device-code') {
       const upstream = await fetch(`${TRAKT_API_BASE}/oauth/device/code`, {
         method: 'POST',
         headers: traktOAuthHeaders(clientId),
         body: JSON.stringify({ client_id: clientId })
       });
-      const data = await upstream.json().catch(() => ({}));
-      if (!upstream.ok) return json(res, upstream.status, data);
+      const raw = await upstream.text();
+      let data = null;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        data = null;
+      }
+      if (!upstream.ok) {
+        return json(res, upstream.status, {
+          error: 'Trakt device code request failed.',
+          upstreamStatus: upstream.status,
+          contentType: upstream.headers.get('content-type') || '',
+          rawPreview: raw.slice(0, 2000),
+          parsed: data
+        });
+      }
+      if (!data) {
+        return json(res, 502, { error: 'Trakt returned non-JSON success body.', rawPreview: raw.slice(0, 2000) });
+      }
       return json(res, 200, {
         device_code: String(data?.device_code || ''),
         user_code: String(data?.user_code || ''),

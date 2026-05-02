@@ -78,6 +78,23 @@ Get a **refresh token**, then set three env vars on Vercel.
 - Set **Spotify API base URL** to `https://<your-project>.vercel.app` (no trailing slash).
 
 
+## GitHub Issues & PRs
+
+Widget → **`/api/github-work-items`** (`api/github-work-items.js` on Vercel: `https://<your-project>.vercel.app/api/github-work-items`).
+
+### Secure mode (recommended)
+
+- Add env var in Vercel project settings:
+  - `GITHUB_TOKEN` — PAT with read access to repos/issues/PRs you want surfaced
+- Redeploy.
+- In Terminal Tab:
+  - Enable **GitHub** widget
+  - **Settings → Advanced → GitHub Widget**
+  - Set mode to **Secure (server API)**
+  - Set **GitHub Username**
+  - If needed (extension / different host), set **GitHub API base URL** to your deployed origin
+
+
 ## Build
 
 ### Requirements

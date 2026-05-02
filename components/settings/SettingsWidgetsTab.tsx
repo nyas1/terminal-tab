@@ -12,7 +12,7 @@ export const SettingsWidgetsTab: React.FC<SettingsWidgetsTabProps> = ({
     onToggleWidget,
     setWidgetToDuplicate,
 }) => {
-    const CoreWidgets = ['search', 'datetime', 'stats', 'weather', 'todo', 'links', 'spotify'];
+    const CoreWidgets = ['search', 'datetime', 'stats', 'weather', 'todo', 'links', 'spotify', 'github'];
     const FunWidgets = ['donut', 'matrix', 'pipes', 'snake', 'life', 'fireworks', 'starfield', 'rain', 'maze'];
 
     return (

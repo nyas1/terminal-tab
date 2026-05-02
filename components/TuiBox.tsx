@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
 
 interface TuiBoxProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string;
@@ -10,6 +10,24 @@ interface TuiBoxProps extends React.HTMLAttributes<HTMLDivElement> {
 
 // Forward ref is required for react-grid-layout to work correctly with custom components
 export const TuiBox = forwardRef<HTMLDivElement, TuiBoxProps>(({ title, className = '', children, showTitle = true, onClose, ...props }, ref) => {
+  const [showScrollbar, setShowScrollbar] = useState(false);
+  const hideTimerRef = useRef<number | null>(null);
+
+  const kickScrollbarHideTimer = () => {
+    setShowScrollbar(true);
+    if (hideTimerRef.current) window.clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = window.setTimeout(() => {
+      setShowScrollbar(false);
+      hideTimerRef.current = null;
+    }, 1400);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) window.clearTimeout(hideTimerRef.current);
+    };
+  }, []);
+
   return (
     <div
       ref={ref}
@@ -52,7 +70,12 @@ export const TuiBox = forwardRef<HTMLDivElement, TuiBoxProps>(({ title, classNam
       )}
 
       {/* Content Area - Inner overflow handling */}
-      <div className="flex-1 min-h-0 min-w-0 w-full relative pt-1 px-2 pb-2 overflow-hidden">
+      <div
+        className={`flex-1 min-h-0 min-w-0 w-full relative pt-1 px-2 pb-2 overflow-hidden widget-scroll-host ${showScrollbar ? 'widget-scroll-host--visible' : ''}`}
+        onScrollCapture={kickScrollbarHideTimer}
+        onMouseEnter={kickScrollbarHideTimer}
+        onMouseLeave={kickScrollbarHideTimer}
+      >
         {children}
       </div>
     </div>

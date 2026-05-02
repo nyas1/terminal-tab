@@ -146,13 +146,17 @@ interface SettingsAdvancedTabProps {
     customCss: string;
     onCustomCssChange: (css: string) => void;
     weatherLocation: { latitude: null | number; longitude: null | number };
-    setWeatherLocation: (location: { latitude:  null | number; longitude: null | number }) => void;
+    setWeatherLocation: (location: { latitude: null | number; longitude: null | number }) => void;
     spotifyPixelAlbumArt: boolean;
     onToggleSpotifyPixelAlbumArt: () => void;
     spotifyPulse: boolean;
     onToggleSpotifyPulse: () => void;
     spotifyApiBaseUrl: string;
     onSpotifyApiBaseUrlChange: (url: string) => void;
+    githubUsername: string;
+    onGithubUsernameChange: (username: string) => void;
+    githubApiBaseUrl: string;
+    onGithubApiBaseUrlChange: (url: string) => void;
 
 }
 
@@ -208,6 +212,10 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
     onToggleSpotifyPulse,
     spotifyApiBaseUrl,
     onSpotifyApiBaseUrlChange,
+    githubUsername,
+    onGithubUsernameChange,
+    githubApiBaseUrl,
+    onGithubApiBaseUrlChange,
 }) => {
     const clickTimeoutsRef = React.useRef<Record<string, number>>({});
     const faviconFileRef = React.useRef<HTMLInputElement>(null);
@@ -450,12 +458,12 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                         <h3 className="text-[var(--color-accent)] font-bold ">Weather Location</h3>
                         <div className="flex flex-col gap-1 ">
                             <label htmlFor="latitude" className="text-[var(--color-muted)] text-sm">Latitude</label>
-                            <input type="text" id="latitude" className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans" placeholder={String(weatherLocation.latitude ?? '1.234567')} onChange={(e) => setWeatherLocation({ latitude: Number(e.target.value), longitude: weatherLocation.longitude })}/>
-                         </div>
-                         <div className="flex flex-col gap-1 ">
+                            <input type="text" id="latitude" className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans" placeholder={String(weatherLocation.latitude ?? '1.234567')} onChange={(e) => setWeatherLocation({ latitude: Number(e.target.value), longitude: weatherLocation.longitude })} />
+                        </div>
+                        <div className="flex flex-col gap-1 ">
                             <label htmlFor="longitude" className="text-[var(--color-muted)] text-sm">Longitude</label>
-                            <input type="text" id="longitude" className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans" placeholder={String(weatherLocation.longitude ?? '1.234567')} onChange={(e) => setWeatherLocation({ latitude: weatherLocation.latitude, longitude: Number(e.target.value) })}/>  
-                        </div>  
+                            <input type="text" id="longitude" className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans" placeholder={String(weatherLocation.longitude ?? '1.234567')} onChange={(e) => setWeatherLocation({ latitude: weatherLocation.latitude, longitude: Number(e.target.value) })} />
+                        </div>
                     </div>
 
                 </div>
@@ -609,6 +617,40 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                             </span>
                             <span className="text-[var(--color-fg)] text-sm group-hover:text-[var(--color-fg)]">
                                 EQ Animation
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activeWidgets.github && (
+                <div className="border border-[var(--color-border)] p-4">
+                    <h3 className="text-[var(--color-accent)] font-bold mb-2">GitHub Widget</h3>
+                    <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[var(--color-muted)] text-xs">GitHub Username</span>
+                            <input
+                                type="text"
+                                autoComplete="off"
+                                placeholder="e.g. octocat"
+                                className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans"
+                                value={githubUsername}
+                                onChange={(e) => onGithubUsernameChange(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[var(--color-muted)] text-xs">GitHub API base URL</span>
+                            <input
+                                type="url"
+                                inputMode="url"
+                                autoComplete="off"
+                                placeholder="https://your-deploy.vercel.app"
+                                className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans"
+                                value={githubApiBaseUrl}
+                                onChange={(e) => onGithubApiBaseUrlChange(e.target.value)}
+                            />
+                            <span className="text-[var(--color-muted)] text-[10px] opacity-70">
+                                Origin that serves <span className="font-mono">/api/github-work-items</span> (no trailing slash), with <span className="font-mono">GITHUB_TOKEN</span> set on the server. Leave empty for same-origin.
                             </span>
                         </div>
                     </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PencilIcon } from '@primer/octicons-react';
 import { TodoItem } from '../types';
 import { extractTime } from '../utils/todoUtils';
 
@@ -9,6 +10,8 @@ interface TodoWidgetProps {
 
 export const TodoWidget: React.FC<TodoWidgetProps> = ({ tasks, setTasks }) => {
     const [newTaskText, setNewTaskText] = useState('');
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [editingText, setEditingText] = useState('');
 
     const toggleTask = (id: number) => {
         setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
@@ -18,6 +21,28 @@ export const TodoWidget: React.FC<TodoWidgetProps> = ({ tasks, setTasks }) => {
         e.stopPropagation();
         setTasks(tasks.filter(t => t.id !== id));
     }
+
+    const startEditTask = (e: React.MouseEvent, task: TodoItem) => {
+        e.stopPropagation();
+        setEditingId(task.id);
+        setEditingText(task.text);
+    };
+
+    const cancelEditTask = () => {
+        setEditingId(null);
+        setEditingText('');
+    };
+
+    const saveEditTask = () => {
+        if (editingId == null) return;
+        const nextText = editingText.trim();
+        if (!nextText) {
+            cancelEditTask();
+            return;
+        }
+        setTasks(tasks.map(t => (t.id === editingId ? { ...t, text: nextText } : t)));
+        cancelEditTask();
+    };
 
     const addTask = (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,17 +79,36 @@ export const TodoWidget: React.FC<TodoWidgetProps> = ({ tasks, setTasks }) => {
                 {tasks.map(task => (
                     <li 
                         key={task.id}
-                        onClick={() => toggleTask(task.id)}
+                        onClick={() => {
+                            if (editingId === task.id) return;
+                            toggleTask(task.id);
+                        }}
                         className={`
                             group mb-1 flex items-center justify-between cursor-pointer transition-colors duration-200 py-1
                             ${task.done ? 'text-[var(--color-muted)]' : 'text-[var(--color-fg)] hover:text-[var(--color-accent)]'}
                         `}
                     >
-                        <div className="flex items-center gap-3 flex-1 min-w-0 mr-2">
+                        <div className="flex items-start gap-3 flex-1 min-w-0 mr-2">
                              <span className="font-mono shrink-0 select-none">
                                 {task.done ? '[x]' : '[ ]'}
                             </span>
-                            <span className={`truncate ${task.done ? 'line-through' : ''}`}>{task.text}</span>
+                            {editingId === task.id ? (
+                                <input
+                                    type="text"
+                                    value={editingText}
+                                    autoFocus
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={(e) => setEditingText(e.target.value)}
+                                    onBlur={saveEditTask}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') saveEditTask();
+                                        if (e.key === 'Escape') cancelEditTask();
+                                    }}
+                                    className="w-full min-w-0 bg-transparent border border-[var(--color-border)] px-1 py-0.5 text-sm text-[var(--color-fg)] outline-none focus:border-[var(--color-accent)]"
+                                />
+                            ) : (
+                                <span className={`whitespace-pre-wrap break-words leading-snug ${task.done ? 'line-through' : ''}`}>{task.text}</span>
+                            )}
                             {task.due && !task.done && (
                                 <span className="ml-auto text-[10px] border border-[var(--color-muted)] px-1.5 py-0.5 rounded text-[var(--color-accent)] opacity-80 whitespace-nowrap">
                                     due {task.due}
@@ -76,12 +120,24 @@ export const TodoWidget: React.FC<TodoWidgetProps> = ({ tasks, setTasks }) => {
                                 </span>
                             )}
                         </div>
-                        <button 
-                            onClick={(e) => removeTask(e, task.id)}
-                            className="opacity-0 group-hover:opacity-100 text-[var(--color-muted)] hover:text-red-500 px-2 shrink-0"
-                        >
-                            x
-                        </button>
+                        <div className="flex items-center shrink-0">
+                            {editingId !== task.id && (
+                                <button
+                                    onClick={(e) => startEditTask(e, task)}
+                                    className="opacity-0 group-hover:opacity-100 text-[var(--color-muted)] hover:text-[var(--color-accent)] px-2 shrink-0"
+                                    title="Edit task"
+                                >
+                                    <PencilIcon size={14} />
+                                </button>
+                            )}
+                            <button 
+                                onClick={(e) => removeTask(e, task.id)}
+                                className="opacity-0 group-hover:opacity-100 text-[var(--color-muted)] hover:text-red-500 px-2 shrink-0"
+                                title="Delete task"
+                            >
+                                x
+                            </button>
+                        </div>
                     </li>
                 ))}
             </ul>

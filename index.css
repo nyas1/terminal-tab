@@ -348,3 +348,33 @@
     image-rendering: crisp-edges;
     image-rendering: pixelated;
 }
+
+/* Widget-wide auto-hide scrollbar: each TuiBox toggles this class on interaction */
+.widget-scroll-host .custom-scrollbar {
+    scrollbar-width: none;
+}
+
+.widget-scroll-host .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.widget-scroll-host .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.widget-scroll-host .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+
+.widget-scroll-host.widget-scroll-host--visible .custom-scrollbar {
+    scrollbar-width: thin;
+}
+
+.widget-scroll-host.widget-scroll-host--visible .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+}
+
+.widget-scroll-host.widget-scroll-host--visible .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+}

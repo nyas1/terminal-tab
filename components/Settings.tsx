@@ -29,6 +29,8 @@ export const Settings: React.FC = () => {
         spotifyPixelAlbumArt, setSpotifyPixelAlbumArt,
         spotifyPulse, setSpotifyPulse,
         spotifyApiBaseUrl, setSpotifyApiBaseUrl,
+        githubUsername, setGithubUsername,
+        githubApiBaseUrl, setGithubApiBaseUrl,
         showWidgetTitles, setShowWidgetTitles,
         customFont, setCustomFont,
         customTabTitle, setCustomTabTitle,
@@ -165,7 +167,7 @@ export const Settings: React.FC = () => {
             {widgetToDuplicate && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 pointer-events-auto">
                     <div className="bg-[var(--color-bg)] border border-[var(--color-border)] p-4 shadow-2xl flex flex-col gap-4 max-w-sm">
-                         <div className="text-[var(--color-fg)] font-bold text-center">
+                        <div className="text-[var(--color-fg)] font-bold text-center">
                             Add another '{widgetToDuplicate}'?
                         </div>
                         <div className="flex gap-4 justify-center">
@@ -326,6 +328,10 @@ export const Settings: React.FC = () => {
                                     onToggleSpotifyPulse={() => setSpotifyPulse(!spotifyPulse)}
                                     spotifyApiBaseUrl={spotifyApiBaseUrl}
                                     onSpotifyApiBaseUrlChange={setSpotifyApiBaseUrl}
+                                    githubUsername={githubUsername}
+                                    onGithubUsernameChange={setGithubUsername}
+                                    githubApiBaseUrl={githubApiBaseUrl}
+                                    onGithubApiBaseUrlChange={setGithubApiBaseUrl}
                                 />
                             )}
 

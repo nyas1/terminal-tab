@@ -5,39 +5,39 @@ import { TodoItem, LinkGroup, Theme, Layouts, FunOptions, SearchEngineId } from 
 
 // Default Layouts
 const DEFAULT_LAYOUTS: Layouts = {
-  lg: [
-    { i: 'settings-guard', x: 11, y: 0, w: 1, h: 1, static: true },
-    { i: 'search', x: 2, y: 0, w: 7, h: 2, minW: 1, minH: 2 },
-    { i: 'spotify', x: 9, y: 0, w: 3, h: 3, minW: 2, minH: 2 },
-    { i: 'datetime', x: 6, y: 2, w: 3, h: 3, minW: 1, minH: 2 },
-    { i: 'stats', x: 5, y: 2, w: 1, h: 3, minW: 1, minH: 2 },
-    { i: 'weather', x: 2, y: 2, w: 3, h: 9, minW: 1, minH: 2 },
-    { i: 'todo', x: 5, y: 5, w: 4, h: 6, minW: 1, minH: 2 },
-    { i: 'links', x: 2, y: 11, w: 7, h: 5, minW: 1, minH: 2 },
-    { i: 'snake', x: 2, y: 16, w: 7, h: 2, minW: 1, minH: 2 }
-  ],
-  md: [
-    { i: 'search', x: 0, y: 0, w: 11, h: 2, minW: 2, minH: 2 },
-    { i: 'settings-guard', x: 11, y: 0, w: 1, h: 1, static: true },
-    { i: 'spotify', x: 8, y: 2, w: 4, h: 4, minW: 2, minH: 2 },
-    { i: 'datetime', x: 0, y: 2, w: 8, h: 4, minW: 2, minH: 2 },
-    { i: 'stats', x: 8, y: 6, w: 4, h: 3, minW: 2, minH: 2 },
-    { i: 'weather', x: 0, y: 6, w: 4, h: 6, minW: 2, minH: 2 },
-    { i: 'todo', x: 4, y: 6, w: 8, h: 6, minW: 2, minH: 2 },
-    { i: 'links', x: 0, y: 12, w: 12, h: 4, minW: 2, minH: 2 },
-    { i: 'snake', x: 0, y: 44, w: 2, h: 4, minW: 1, minH: 2 }
-  ],
-  sm: [
-    { i: 'settings-guard', x: 5, y: 0, w: 1, h: 1, static: true },
-    { i: 'search', x: 0, y: 0, w: 5, h: 2, minW: 2, minH: 2 },
-    { i: 'spotify', x: 0, y: 2, w: 6, h: 3, minW: 2, minH: 2 },
-    { i: 'datetime', x: 0, y: 5, w: 6, h: 4, minW: 2, minH: 2 },
-    { i: 'stats', x: 0, y: 9, w: 6, h: 3, minW: 2, minH: 2 },
-    { i: 'weather', x: 0, y: 12, w: 6, h: 4, minW: 2, minH: 2 },
-    { i: 'todo', x: 0, y: 16, w: 6, h: 5, minW: 2, minH: 2 },
-    { i: 'links', x: 0, y: 21, w: 6, h: 4, minW: 2, minH: 2 },
-    { i: 'snake', x: 0, y: 25, w: 2, h: 4, minW: 1, minH: 2 }
-  ]
+    lg: [
+        { i: 'settings-guard', x: 11, y: 0, w: 1, h: 1, static: true },
+        { i: 'search', x: 2, y: 0, w: 7, h: 2, minW: 1, minH: 2 },
+        { i: 'spotify', x: 9, y: 0, w: 3, h: 3, minW: 2, minH: 2 },
+        { i: 'datetime', x: 6, y: 2, w: 3, h: 3, minW: 1, minH: 2 },
+        { i: 'stats', x: 5, y: 2, w: 1, h: 3, minW: 1, minH: 2 },
+        { i: 'weather', x: 2, y: 2, w: 3, h: 9, minW: 1, minH: 2 },
+        { i: 'todo', x: 5, y: 5, w: 4, h: 6, minW: 1, minH: 2 },
+        { i: 'links', x: 2, y: 11, w: 7, h: 5, minW: 1, minH: 2 },
+        { i: 'snake', x: 2, y: 16, w: 7, h: 2, minW: 1, minH: 2 }
+    ],
+    md: [
+        { i: 'search', x: 0, y: 0, w: 11, h: 2, minW: 2, minH: 2 },
+        { i: 'settings-guard', x: 11, y: 0, w: 1, h: 1, static: true },
+        { i: 'spotify', x: 8, y: 2, w: 4, h: 4, minW: 2, minH: 2 },
+        { i: 'datetime', x: 0, y: 2, w: 8, h: 4, minW: 2, minH: 2 },
+        { i: 'stats', x: 8, y: 6, w: 4, h: 3, minW: 2, minH: 2 },
+        { i: 'weather', x: 0, y: 6, w: 4, h: 6, minW: 2, minH: 2 },
+        { i: 'todo', x: 4, y: 6, w: 8, h: 6, minW: 2, minH: 2 },
+        { i: 'links', x: 0, y: 12, w: 12, h: 4, minW: 2, minH: 2 },
+        { i: 'snake', x: 0, y: 44, w: 2, h: 4, minW: 1, minH: 2 }
+    ],
+    sm: [
+        { i: 'settings-guard', x: 5, y: 0, w: 1, h: 1, static: true },
+        { i: 'search', x: 0, y: 0, w: 5, h: 2, minW: 2, minH: 2 },
+        { i: 'spotify', x: 0, y: 2, w: 6, h: 3, minW: 2, minH: 2 },
+        { i: 'datetime', x: 0, y: 5, w: 6, h: 4, minW: 2, minH: 2 },
+        { i: 'stats', x: 0, y: 9, w: 6, h: 3, minW: 2, minH: 2 },
+        { i: 'weather', x: 0, y: 12, w: 6, h: 4, minW: 2, minH: 2 },
+        { i: 'todo', x: 0, y: 16, w: 6, h: 5, minW: 2, minH: 2 },
+        { i: 'links', x: 0, y: 21, w: 6, h: 4, minW: 2, minH: 2 },
+        { i: 'snake', x: 0, y: 25, w: 2, h: 4, minW: 1, minH: 2 }
+    ]
 };
 
 const funDefaults: FunOptions = {
@@ -122,6 +122,12 @@ interface AppContextType {
      */
     spotifyApiBaseUrl: string;
     setSpotifyApiBaseUrl: (url: string) => void;
+    /** GitHub username used to query assigned/authored issues and PRs. */
+    githubUsername: string;
+    setGithubUsername: (value: string) => void;
+    /** Optional https origin for /api/github-work-items. Empty = same-origin /api. */
+    githubApiBaseUrl: string;
+    setGithubApiBaseUrl: (url: string) => void;
     isLayoutLocked: boolean;
     setIsLayoutLocked: (locked: boolean) => void;
     isResizingEnabled: boolean;
@@ -181,7 +187,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [customTabFavicon, setCustomTabFavicon] = useStickyState<string>('', 'tui-tab-favicon');
 
     const [funOptionsRaw, setFunOptions] = useStickyState<FunOptions>(funDefaults, 'tui-fun-options-v3');
-    
+
     const [weatherLocation, setWeatherLocation] = useStickyState<{ latitude: null | number; longitude: null | number }>({ latitude: null, longitude: null }, 'tui-weather-location');
 
 
@@ -206,6 +212,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         todo: true,
         links: true,
         spotify: false,
+        github: false,
         donut: false,
         matrix: false,
         pipes: false,
@@ -220,6 +227,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [spotifyPixelAlbumArt, setSpotifyPixelAlbumArt] = useStickyState<boolean>(true, 'tui-spotify-pixel-album-art');
     const [spotifyPulse, setSpotifyPulse] = useStickyState<boolean>(true, 'tui-spotify-pulse');
     const [spotifyApiBaseUrl, setSpotifyApiBaseUrl] = useStickyState<string>('', 'tui-spotify-api-base-url');
+    const [githubUsername, setGithubUsername] = useStickyState<string>('', 'tui-github-username');
+    const [githubApiBaseUrl, setGithubApiBaseUrl] = useStickyState<string>('', 'tui-github-api-base-url');
 
     const [isLayoutLocked, setIsLayoutLocked] = useStickyState<boolean>(true, 'tui-layout-locked-v2');
     const [isResizingEnabled, setIsResizingEnabled] = useStickyState<boolean>(false, 'tui-resizing-enabled');
@@ -381,6 +390,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             todo: true,
             links: true,
             spotify: false,
+            github: false,
             donut: false,
             matrix: false,
             pipes: false,
@@ -411,6 +421,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setSpotifyPixelAlbumArt(true);
         setSpotifyPulse(true);
         setSpotifyApiBaseUrl('');
+        setGithubUsername('');
+        setGithubApiBaseUrl('');
     };
 
     const removeExtraWidget = (key: string) => {
@@ -521,7 +533,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 searchSlashHotkeyEnabled,
                 spotifyPixelAlbumArt,
                 spotifyPulse,
-                spotifyApiBaseUrl
+                spotifyApiBaseUrl,
+                githubUsername,
+                githubApiBaseUrl
             }
         };
         setPresets([...presets, newPreset]);
@@ -557,6 +571,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (d.spotifyPixelAlbumArt !== undefined) setSpotifyPixelAlbumArt(d.spotifyPixelAlbumArt);
         if (d.spotifyPulse !== undefined) setSpotifyPulse(d.spotifyPulse);
         if (d.spotifyApiBaseUrl !== undefined) setSpotifyApiBaseUrl(d.spotifyApiBaseUrl);
+        if (d.githubUsername !== undefined) setGithubUsername(d.githubUsername);
+        if (d.githubApiBaseUrl !== undefined) setGithubApiBaseUrl(d.githubApiBaseUrl);
     };
 
     const handleDeletePreset = (id: number) => {
@@ -594,6 +610,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         spotifyPixelAlbumArt, setSpotifyPixelAlbumArt,
         spotifyPulse, setSpotifyPulse,
         spotifyApiBaseUrl, setSpotifyApiBaseUrl,
+        githubUsername, setGithubUsername,
+        githubApiBaseUrl, setGithubApiBaseUrl,
         isLayoutLocked, setIsLayoutLocked,
         isResizingEnabled, setIsResizingEnabled,
         presets, setPresets,

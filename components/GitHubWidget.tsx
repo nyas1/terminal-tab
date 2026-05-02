@@ -67,10 +67,22 @@ const normalizeUserApiOrigin = (raw: string): string => {
 
 const resolveGithubApiUrl = (userBase: string, username: string) => {
   const base = normalizeUserApiOrigin(userBase);
-  const apiPath = `/api/github-work-items?username=${encodeURIComponent(username)}&limit=${LIMIT}`;
-  if (base) return `${base}${apiPath}`;
+  const qs = `username=${encodeURIComponent(username)}&limit=${LIMIT}`;
+  const apiPath = `/api/github-work-items?${qs}`;
+  if (base) {
+    // Accept either origin ("https://site") or full endpoint URL pasted by user.
+    if (/\/api\/github-work-items(?:\?|$)/i.test(base)) {
+      const withNoTrailingParams = base.replace(/[?&]username=[^&]*/i, '').replace(/[?&]limit=[^&]*/i, '').replace(/[?&]$/, '');
+      const joiner = withNoTrailingParams.includes('?') ? '&' : '?';
+      return `${withNoTrailingParams}${joiner}${qs}`;
+    }
+    return `${base}${apiPath}`;
+  }
   return apiPath;
 };
+
+const resolveSameOriginGithubApiUrl = (username: string) =>
+  `/api/github-work-items?username=${encodeURIComponent(username)}&limit=${LIMIT}`;
 
 export const GitHubWidget: React.FC = () => {
   const { githubUsername, githubApiBaseUrl } = useAppContext();
@@ -88,7 +100,19 @@ export const GitHubWidget: React.FC = () => {
     const fetchItems = async () => {
       try {
         const isExtension = window.location.protocol === 'moz-extension:';
-        const issuesRes = await fetch(resolveGithubApiUrl(githubApiBaseUrl, username), { cache: 'no-store' });
+        const endpoint = resolveGithubApiUrl(githubApiBaseUrl, username);
+        const issuesRes = await (async () => {
+          try {
+            return await fetch(endpoint, { cache: 'no-store' });
+          } catch (err) {
+            // In strict browser privacy modes, cross-origin requests can fail with
+            // generic NetworkError. Retry same-origin /api on localhost dev.
+            const isLocalhost = /^localhost$|^127\.0\.0\.1$/.test(window.location.hostname);
+            const fallback = resolveSameOriginGithubApiUrl(username);
+            if (!isLocalhost || endpoint === fallback) throw err;
+            return await fetch(fallback, { cache: 'no-store' });
+          }
+        })();
 
         if (!issuesRes.ok) {
           const failed = issuesRes;

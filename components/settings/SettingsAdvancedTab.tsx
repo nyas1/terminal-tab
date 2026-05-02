@@ -1,4 +1,12 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+    TRAKT_AUTH_STORAGE_KEY,
+    TRAKT_DEVICE_STORAGE_KEY,
+    readTraktJson,
+    writeTraktJson,
+    type TraktDeviceCodeState,
+    type TraktStoredAuth
+} from '../../utils/traktClient';
 import { AsciiSlider } from '../AsciiSlider';
 import { SEARCH_ENGINES } from '../../constants';
 import { SearchEngineId } from '../../types';
@@ -163,6 +171,8 @@ interface SettingsAdvancedTabProps {
     onAnilistShownListsChange: (lists: ('CURRENT' | 'COMPLETED' | 'PAUSED' | 'DROPPED' | 'PLANNING')[]) => void;
     anilistLinkTarget: 'anilist' | 'miruro';
     onAnilistLinkTargetChange: (target: 'anilist' | 'miruro') => void;
+    tmdbApiKey: string;
+    onTmdbApiKeyChange: (apiKey: string) => void;
 
 }
 
@@ -228,9 +238,152 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
     onAnilistShownListsChange,
     anilistLinkTarget,
     onAnilistLinkTargetChange,
+    tmdbApiKey,
+    onTmdbApiKeyChange,
 }) => {
     const clickTimeoutsRef = React.useRef<Record<string, number>>({});
     const faviconFileRef = React.useRef<HTMLInputElement>(null);
+    const [traktDeviceState, setTraktDeviceState] = useState<TraktDeviceCodeState | null>(() =>
+        readTraktJson<TraktDeviceCodeState>(TRAKT_DEVICE_STORAGE_KEY)
+    );
+    const [traktAuthMessage, setTraktAuthMessage] = useState<string | null>(null);
+
+    const handleTraktDisconnect = useCallback(() => {
+        writeTraktJson(TRAKT_AUTH_STORAGE_KEY, null);
+        writeTraktJson(TRAKT_DEVICE_STORAGE_KEY, null);
+        setTraktDeviceState(null);
+        setTraktAuthMessage('Trakt disconnected.');
+    }, []);
+
+    const copyTraktText = useCallback(async (label: string, text: string) => {
+        const t = text.trim();
+        if (!t) return;
+        try {
+            await navigator.clipboard.writeText(t);
+            setTraktAuthMessage(`${label} copied to clipboard.`);
+        } catch {
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = t;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                setTraktAuthMessage(`${label} copied to clipboard.`);
+            } catch {
+                setTraktAuthMessage('Copy failed — select the field and press Ctrl+C.');
+            }
+        }
+    }, []);
+
+    const handleTraktConnect = useCallback(async () => {
+        try {
+            const res = await fetch('/api/trakt-auth?action=device-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            });
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                const extra = body?.error_description || body?.error || body?.message || '';
+                throw new Error(`device auth failed (${res.status})${extra ? `: ${String(extra)}` : ''}`);
+            }
+            const body = await res.json();
+            const nextState: TraktDeviceCodeState = {
+                deviceCode: String(body?.device_code || ''),
+                userCode: String(body?.user_code || ''),
+                verificationUrl: String(body?.verification_url || 'https://trakt.tv/activate').replace(/\/+$/, ''),
+                expiresIn: Number(body?.expires_in || 600),
+                interval: Number(body?.interval || 5),
+                startedAt: Date.now()
+            };
+            if (!nextState.deviceCode || !nextState.userCode) {
+                throw new Error('invalid device auth response');
+            }
+            setTraktDeviceState(nextState);
+            writeTraktJson(TRAKT_DEVICE_STORAGE_KEY, nextState);
+            setTraktAuthMessage('Open the activation URL, enter the code, then wait for approval.');
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'unknown error';
+            setTraktAuthMessage(`Trakt: ${msg}`);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!traktDeviceState) return;
+
+        const elapsedSec = Math.floor((Date.now() - traktDeviceState.startedAt) / 1000);
+        if (elapsedSec >= traktDeviceState.expiresIn) {
+            writeTraktJson(TRAKT_DEVICE_STORAGE_KEY, null);
+            setTraktDeviceState(null);
+            setTraktAuthMessage('Trakt device code expired. Click [ CONNECT ] again.');
+            return;
+        }
+
+        let cancelled = false;
+
+        const runPoll = async () => {
+            try {
+                const res = await fetch('/api/trakt-auth?action=device-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        deviceCode: traktDeviceState.deviceCode
+                    })
+                });
+                if (cancelled) return;
+
+                if (!res.ok) {
+                    const body = await res.json().catch(() => ({}));
+                    const extra = body?.error_description || body?.error || body?.message || '';
+                    throw new Error(`device token error (${res.status})${extra ? `: ${String(extra)}` : ''}`);
+                }
+
+                const body = await res.json();
+                const status = String(body?.status || '');
+                if (status === 'authorized') {
+                    const auth: TraktStoredAuth = {
+                        accessToken: String(body?.access_token || ''),
+                        refreshToken: String(body?.refresh_token || ''),
+                        expiresAt: Date.now() + (Number(body?.expires_in || 3600) * 1000),
+                        createdAt: Date.now()
+                    };
+                    if (!auth.accessToken || !auth.refreshToken) {
+                        throw new Error('invalid token response');
+                    }
+                    writeTraktJson(TRAKT_AUTH_STORAGE_KEY, auth);
+                    writeTraktJson(TRAKT_DEVICE_STORAGE_KEY, null);
+                    setTraktDeviceState(null);
+                    setTraktAuthMessage('Trakt connected. You can close settings.');
+                    return;
+                }
+                if (status === 'pending') {
+                    return;
+                }
+                if (status === 'denied') {
+                    writeTraktJson(TRAKT_DEVICE_STORAGE_KEY, null);
+                    setTraktDeviceState(null);
+                }
+                const errCode = String(body?.error || body?.message || 'device token error');
+                const errDesc = body?.error_description;
+                throw new Error(errDesc ? `${errCode}: ${String(errDesc)}` : errCode);
+            } catch (error) {
+                if (cancelled) return;
+                const msg = error instanceof Error ? error.message : 'unknown error';
+                setTraktAuthMessage(`Trakt: ${msg}`);
+            }
+        };
+
+        const tickMs = Math.max(3, traktDeviceState.interval) * 1000;
+        const t = window.setInterval(runPoll, tickMs);
+        void runPoll();
+        return () => {
+            cancelled = true;
+            window.clearInterval(t);
+        };
+    }, [traktDeviceState]);
 
     const onFaviconFile = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -742,6 +895,106 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                             <span className="text-[var(--color-muted)] text-[10px] opacity-70">
                                 Selected: {anilistShownLists.length}/3
                             </span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activeWidgets.trakt && (
+                <div className="border border-[var(--color-border)] p-4">
+                    <h3 className="text-[var(--color-accent)] font-bold mb-2">Trakt Widget</h3>
+                    <div className="flex flex-col gap-3">
+                        <p className="text-[10px] font-mono text-[var(--color-muted)]">
+                            Server auth enabled (TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET on Vercel).
+                        </p>
+                        <div className="flex flex-col gap-1 border-t border-[var(--color-border)] pt-2 border-dashed">
+                            <span className="text-[var(--color-muted)] text-xs">TMDB API Token (v4 Read Access Token)</span>
+                            <input
+                                type="password"
+                                autoComplete="off"
+                                placeholder="optional, used as primary poster source"
+                                className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans"
+                                value={tmdbApiKey}
+                                onChange={(e) => onTmdbApiKeyChange(e.target.value)}
+                            />
+                            <span className="text-[var(--color-muted)] text-[10px] opacity-70">
+                                If set, Trakt widget uses TMDB posters first, then Trakt/Walter fallback.
+                            </span>
+                        </div>
+                        {readTraktJson<TraktStoredAuth>(TRAKT_AUTH_STORAGE_KEY)?.refreshToken ? (
+                            <p className="text-[10px] font-mono text-[var(--color-muted)]">Status: connected (tokens in local storage)</p>
+                        ) : (
+                            <p className="text-[10px] font-mono text-[var(--color-muted)]">Status: not connected</p>
+                        )}
+                        {traktDeviceState ? (
+                            <div className="border border-[var(--color-border)] p-2 text-[10px] text-[var(--color-muted)] font-mono space-y-2">
+                                <div>
+                                    <span className="block mb-1">1) Open (tap link or copy URL):</span>
+                                    <div className="flex flex-wrap items-center gap-2 min-w-0">
+                                        <a
+                                            className="text-[var(--color-accent)] underline shrink-0"
+                                            href={traktDeviceState.verificationUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            trakt.tv/activate
+                                        </a>
+                                        <button
+                                            type="button"
+                                            onClick={() => void copyTraktText('Activation URL', traktDeviceState.verificationUrl)}
+                                            className="border border-[var(--color-border)] px-2 py-0.5 text-[10px] font-mono text-[var(--color-fg)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] no-radius shrink-0"
+                                        >
+                                            [ COPY URL ]
+                                        </button>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        className="mt-1 w-full bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-[10px] font-mono select-all outline-none"
+                                        value={traktDeviceState.verificationUrl}
+                                        onFocus={(e) => e.target.select()}
+                                    />
+                                </div>
+                                <div>
+                                    <span className="block mb-1">2) Enter code on Trakt:</span>
+                                    <div className="flex flex-wrap items-center gap-2 min-w-0">
+                                        <input
+                                            type="text"
+                                            readOnly
+                                            className="flex-1 min-w-[8rem] bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-xs font-mono tracking-widest select-all outline-none"
+                                            value={traktDeviceState.userCode}
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => void copyTraktText('Activation code', traktDeviceState.userCode)}
+                                            className="border border-[var(--color-border)] px-2 py-1 text-[10px] font-mono text-[var(--color-fg)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] no-radius shrink-0"
+                                        >
+                                            [ COPY CODE ]
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="opacity-80">Waiting for approval...</p>
+                            </div>
+                        ) : null}
+                        {traktAuthMessage ? (
+                            <p className="text-[10px] font-mono text-[var(--color-muted)]">{traktAuthMessage}</p>
+                        ) : null}
+                        <div className="flex gap-2 pt-1">
+                            <button
+                                type="button"
+                                onClick={() => void handleTraktConnect()}
+                                className="border border-[var(--color-border)] px-2 py-1 text-xs font-mono text-[var(--color-fg)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] no-radius"
+                            >
+                                [ CONNECT ]
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleTraktDisconnect}
+                                className="border border-[var(--color-border)] px-2 py-1 text-xs font-mono text-[var(--color-muted)] hover:border-red-500 hover:text-red-500 no-radius"
+                            >
+                                [ DISCONNECT ]
+                            </button>
                         </div>
                     </div>
                 </div>

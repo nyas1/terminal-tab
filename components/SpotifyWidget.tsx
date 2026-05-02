@@ -58,7 +58,11 @@ type WidgetState =
 /** Saved settings origin, or same-origin /api (no build-time default — same rule as the extension). */
 const resolveSpotifyApiUrl = (userBase: string) => {
   const base = normalizeUserApiOrigin(userBase);
-  if (base) return `${base}/api/spotify-now-playing`;
+  if (base) {
+    // Accept either origin ("https://site") or full endpoint URL pasted by user.
+    if (/\/api\/spotify-now-playing$/i.test(base)) return base;
+    return `${base}/api/spotify-now-playing`;
+  }
   return '/api/spotify-now-playing';
 };
 
@@ -238,7 +242,19 @@ export const SpotifyWidget: React.FC = () => {
     const fetchNowPlaying = async () => {
       const isExtension = window.location.protocol === 'moz-extension:';
       try {
-        const res = await fetch(endpoint, { cache: 'no-store' });
+        const fetchWithFallback = async () => {
+          try {
+            return await fetch(endpoint, { cache: 'no-store' });
+          } catch (err) {
+            // In strict browser privacy modes, cross-origin requests can fail with
+            // generic NetworkError. Retry same-origin /api on localhost dev.
+            const isLocalhost = /^localhost$|^127\.0\.0\.1$/.test(window.location.hostname);
+            const canFallback = isLocalhost && endpoint !== '/api/spotify-now-playing';
+            if (!canFallback) throw err;
+            return await fetch('/api/spotify-now-playing', { cache: 'no-store' });
+          }
+        };
+        const res = await fetchWithFallback();
         let parsed: unknown = null;
         try {
           parsed = await res.json();

@@ -34,6 +34,7 @@ export const Settings: React.FC = () => {
         anilistUsername, setAnilistUsername,
         anilistShownLists, setAnilistShownLists,
         anilistLinkTarget, setAnilistLinkTarget,
+        tmdbApiKey, setTmdbApiKey,
         showWidgetTitles, setShowWidgetTitles,
         customFont, setCustomFont,
         customTabTitle, setCustomTabTitle,
@@ -341,6 +342,8 @@ export const Settings: React.FC = () => {
                                     onAnilistShownListsChange={setAnilistShownLists}
                                     anilistLinkTarget={anilistLinkTarget}
                                     onAnilistLinkTargetChange={setAnilistLinkTarget}
+                                    tmdbApiKey={tmdbApiKey}
+                                    onTmdbApiKeyChange={setTmdbApiKey}
                                 />
                             )}
 

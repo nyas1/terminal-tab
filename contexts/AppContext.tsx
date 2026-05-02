@@ -137,6 +137,15 @@ interface AppContextType {
     /** Where AniList widget links open: AniList page or Miruro watch page. */
     anilistLinkTarget: 'anilist' | 'miruro';
     setAnilistLinkTarget: (value: 'anilist' | 'miruro') => void;
+    /** Trakt API client id for local, client-side auth flow. */
+    traktClientId: string;
+    setTraktClientId: (value: string) => void;
+    /** Trakt API client secret for local, client-side auth flow. */
+    traktClientSecret: string;
+    setTraktClientSecret: (value: string) => void;
+    /** TMDB v4 read access token for poster fallback in Trakt widget. */
+    tmdbApiKey: string;
+    setTmdbApiKey: (value: string) => void;
     isLayoutLocked: boolean;
     setIsLayoutLocked: (locked: boolean) => void;
     isResizingEnabled: boolean;
@@ -223,6 +232,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         spotify: false,
         github: false,
         anilist: false,
+        trakt: false,
         donut: false,
         matrix: false,
         pipes: false,
@@ -242,6 +252,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [anilistUsername, setAnilistUsername] = useStickyState<string>('', 'tui-anilist-username');
     const [anilistShownLists, setAnilistShownLists] = useStickyState<('CURRENT' | 'COMPLETED' | 'PAUSED' | 'DROPPED' | 'PLANNING')[]>(['CURRENT'], 'tui-anilist-shown-lists');
     const [anilistLinkTarget, setAnilistLinkTarget] = useStickyState<'anilist' | 'miruro'>('anilist', 'tui-anilist-link-target');
+    const [traktClientId, setTraktClientId] = useStickyState<string>('', 'tui-trakt-client-id');
+    const [traktClientSecret, setTraktClientSecret] = useStickyState<string>('', 'tui-trakt-client-secret');
+    const [tmdbApiKey, setTmdbApiKey] = useStickyState<string>('', 'tui-tmdb-api-key');
 
     const [isLayoutLocked, setIsLayoutLocked] = useStickyState<boolean>(true, 'tui-layout-locked-v2');
     const [isResizingEnabled, setIsResizingEnabled] = useStickyState<boolean>(false, 'tui-resizing-enabled');
@@ -405,6 +418,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             spotify: false,
             github: false,
             anilist: false,
+            trakt: false,
             donut: false,
             matrix: false,
             pipes: false,
@@ -440,6 +454,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setAnilistUsername('');
         setAnilistShownLists(['CURRENT']);
         setAnilistLinkTarget('anilist');
+        setTraktClientId('');
+        setTraktClientSecret('');
     };
 
     const removeExtraWidget = (key: string) => {
@@ -555,7 +571,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 githubApiBaseUrl,
                 anilistUsername,
                 anilistShownLists,
-                anilistLinkTarget
+                anilistLinkTarget,
+                traktClientId,
+                traktClientSecret,
+                tmdbApiKey
             }
         };
         setPresets([...presets, newPreset]);
@@ -596,6 +615,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (d.anilistUsername !== undefined) setAnilistUsername(d.anilistUsername);
         if (d.anilistShownLists !== undefined) setAnilistShownLists(d.anilistShownLists);
         if (d.anilistLinkTarget !== undefined) setAnilistLinkTarget(d.anilistLinkTarget);
+        if (d.traktClientId !== undefined) setTraktClientId(d.traktClientId);
+        if (d.traktClientSecret !== undefined) setTraktClientSecret(d.traktClientSecret);
+        if (d.tmdbApiKey !== undefined) setTmdbApiKey(d.tmdbApiKey);
     };
 
     const handleDeletePreset = (id: number) => {
@@ -638,6 +660,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         anilistUsername, setAnilistUsername,
         anilistShownLists, setAnilistShownLists,
         anilistLinkTarget, setAnilistLinkTarget,
+        traktClientId, setTraktClientId,
+        traktClientSecret, setTraktClientSecret,
+        tmdbApiKey, setTmdbApiKey,
         isLayoutLocked, setIsLayoutLocked,
         isResizingEnabled, setIsResizingEnabled,
         presets, setPresets,

@@ -30,7 +30,30 @@ function patchBundleGlobalThisPolyfill() {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiProxyTarget = (env.VITE_DEV_API_PROXY || '').trim()
+  // For localhost dev, default /api proxy to the public deployment so widgets
+  // can use same-origin calls and avoid browser cross-origin/privacy blockers.
+  // Override by setting VITE_DEV_API_PROXY in your env.
+  const apiProxyTarget = (env.VITE_DEV_API_PROXY || 'https://terminal-tab.vercel.app').trim()
+
+  const devProxy = {
+    '/api': {
+      target: apiProxyTarget,
+      changeOrigin: true,
+      secure: true
+    },
+    '/trakt-api': {
+      target: 'https://api.trakt.tv',
+      changeOrigin: true,
+      secure: true,
+      rewrite: (p) => p.replace(/^\/trakt-api/, '')
+    },
+    '/tmdb-api': {
+      target: 'https://api.themoviedb.org/3',
+      changeOrigin: true,
+      secure: true,
+      rewrite: (p) => p.replace(/^\/tmdb-api/, '')
+    }
+  }
 
   return {
     plugins: [react(), patchBundleGlobalThisPolyfill()],
@@ -45,17 +68,7 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true
     },
     server: {
-      ...(apiProxyTarget
-        ? {
-            proxy: {
-              '/api': {
-                target: apiProxyTarget,
-                changeOrigin: true,
-                secure: true
-              }
-            }
-          }
-        : {})
+      proxy: devProxy
     }
   }
 })

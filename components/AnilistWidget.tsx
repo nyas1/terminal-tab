@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 
 type AnilistEntry = {
@@ -34,6 +34,8 @@ const LIST_LABELS: Record<AnilistListStatus, string> = {
   PLANNING: 'Planning'
 };
 const VALID_LISTS: AnilistListStatus[] = ['CURRENT', 'COMPLETED', 'PAUSED', 'DROPPED', 'PLANNING'];
+const ANILIST_REFRESH_BTN_CLASS =
+  'px-0.5 py-0 text-[15px] leading-none font-mono text-[var(--color-muted)] hover:text-[var(--color-accent)] disabled:opacity-50 disabled:pointer-events-none';
 
 const QUERY = `
 query AnimeLists($userName: String!, $statusIn: [MediaListStatus]) {
@@ -102,6 +104,10 @@ export const AnilistWidget: React.FC = () => {
   const { anilistUsername, anilistShownLists, anilistLinkTarget } = useAppContext();
   const [state, setState] = useState<WidgetState>({ status: 'loading' });
   const [filter, setFilter] = useState<AnilistFilter>('CURRENT');
+  const [manualRefresh, setManualRefresh] = useState(0);
+  const requestRefresh = useCallback(() => {
+    setManualRefresh((n) => n + 1);
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -190,7 +196,7 @@ export const AnilistWidget: React.FC = () => {
       alive = false;
       window.clearInterval(timer);
     };
-  }, [anilistShownLists, anilistUsername]);
+  }, [anilistShownLists, anilistUsername, manualRefresh]);
 
   useEffect(() => {
     const selectedLists = (anilistShownLists.length ? anilistShownLists : ['CURRENT'])
@@ -203,13 +209,38 @@ export const AnilistWidget: React.FC = () => {
 
   const content = useMemo(() => {
     if (state.status === 'loading') {
-      return <p className="text-xs text-[var(--color-muted,#888888)]">loading...</p>;
+      return (
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs text-[var(--color-muted,#888888)]">loading...</p>
+          <button type="button" disabled className={ANILIST_REFRESH_BTN_CLASS} aria-label="Refresh" title="Refresh">
+            ↻
+          </button>
+        </div>
+      );
     }
     if (state.status === 'error') {
-      return <p className="text-xs leading-snug text-[var(--color-muted,#888888)]">{state.message}</p>;
+      return (
+        <div className="space-y-2">
+          <p className="text-xs leading-snug text-[var(--color-muted,#888888)]">{state.message}</p>
+          <div className="flex justify-end">
+            <button type="button" onClick={requestRefresh} className={ANILIST_REFRESH_BTN_CLASS} aria-label="Refresh" title="Refresh">
+              ↻
+            </button>
+          </div>
+        </div>
+      );
     }
     if (state.items.length === 0) {
-      return <p className="text-xs text-[var(--color-muted,#888888)]">No anime found in selected lists.</p>;
+      return (
+        <div className="space-y-2">
+          <p className="text-xs text-[var(--color-muted,#888888)]">No anime found in selected lists.</p>
+          <div className="flex justify-end">
+            <button type="button" onClick={requestRefresh} className={ANILIST_REFRESH_BTN_CLASS} aria-label="Refresh" title="Refresh">
+              ↻
+            </button>
+          </div>
+        </div>
+      );
     }
 
     const selectedLists = (anilistShownLists.length ? anilistShownLists : ['CURRENT'])
@@ -241,6 +272,9 @@ export const AnilistWidget: React.FC = () => {
               [{LIST_LABELS[option].toUpperCase()}]
             </button>
           ))}
+          <button type="button" onClick={requestRefresh} className={`${ANILIST_REFRESH_BTN_CLASS} ml-auto`} aria-label="Refresh" title="Refresh">
+            ↻
+          </button>
         </div>
         <ul className="space-y-2">
           {visibleItems.map((entry) => (
@@ -266,16 +300,7 @@ export const AnilistWidget: React.FC = () => {
                 )}
                 <div className="min-w-0">
                   <p className="truncate text-xs text-[var(--color-fg,#e0e0e0)]">{entry.title}</p>
-                  <p className="font-mono text-[10px] text-[var(--color-muted,#888888)]">
-                    {entry.status === 'RELEASING' ? (
-                      <span
-                        className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-green-400 align-middle"
-                        aria-label="currently airing"
-                        title="Currently airing"
-                      />
-                    ) : null}
-                    {formatProgress(entry)}
-                  </p>
+                  <p className="font-mono text-[10px] text-[var(--color-muted,#888888)]">{formatProgress(entry)}</p>
                 </div>
               </a>
                 );
@@ -285,7 +310,8 @@ export const AnilistWidget: React.FC = () => {
         </ul>
       </div>
     );
-  }, [anilistLinkTarget, anilistShownLists, filter, state]);
+  }, [anilistLinkTarget, anilistShownLists, filter, requestRefresh, state]);
 
   return <div className="h-full overflow-auto pr-1 custom-scrollbar">{content}</div>;
 };
+

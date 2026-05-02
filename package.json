@@ -9,13 +9,14 @@
   "bugs": {
     "url": "https://github.com/nyas1/terminal-tab/issues"
   },
-  "homepage": "https://github.com/nyas1/terminal-tab#readme",
+  "homepage": "https://addons.mozilla.org/firefox/addon/terminal-newtab/",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "build:extension": "tsc && vite build --mode extension",
     "icons:extension": "node scripts/render-extension-icons.mjs",
+    "package:extension": "npm run build:extension && node scripts/sync-firefox-addon-from-dist.mjs && node scripts/run-package-addon.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,17 +1,19 @@
 
 
 <p align="center">
-  <img src="https://dc.missuo.ru/file/1472237296475443202" width="72" alt="Terminal Tab icon">
+  <img src="firefox_addon/icon-terminal-tab.svg" width="72" height="72" alt="Terminal Tab logo">
 </p>
 
 <h1 align="center">Terminal Tab</h1>
 
 <p align="center">
-  Retro-inspired, modular new tab dashboard built for focus and speed.
+  Terminal-core, modular new tab dashboard.
 </p>
 
 <p align="center">
-  <a href="https://github.com/nyas1/terminal-tab">github.com/nyas1/terminal-tab</a>
+  <a href="https://addons.mozilla.org/firefox/addon/terminal-newtab/">
+    <img src="https://blog.mozilla.org/addons/files/2020/04/get-the-addon-fx-apr-2020.svg" width="172" alt="Get the add-on for Firefox">
+  </a>
 </p>
 
 <p align="center">
@@ -97,10 +99,21 @@ Get a **refresh token**, then set three env vars on Vercel.
 
 ### Firefox `.xpi`
 
+- **Listed build:** [Terminal Tab on addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/terminal-newtab/)
 - Requires **Firefox 140+** (desktop) / **142+** (Android) for this manifest (built-in data-collection consent).
-- **`npm run build:extension`**
-- Copy **`dist/assets/`** → **`firefox_addon/assets/`**
-- Edit **`firefox_addon/newtab.html`**: set the `<script>` and `<link rel="stylesheet">` **`./assets/...`** paths to the same hashed names as in **`dist/index.html`**.
-- **`python package_addon.py`** → **`terminal-tab-<version>.xpi`** (from `firefox_addon/manifest.json`)
+
+**One-shot build (recommended):**
+
+```bash
+npm ci
+npm run icons:extension
+npm run package:extension
+```
+
+This runs, in order: TypeScript + Vite (`--mode extension`), syncs **`dist/assets/`** into **`firefox_addon/assets/`**, updates hashed **`index-*.js` / `index-*.css`** in **`firefox_addon/newtab.html`** from **`dist/index.html`**, runs **`package_addon.py`** (syncs boot scripts from **`public/`**, zips **`firefox_addon/`**).
+
+Output: **`terminal-tab-<version>.xpi`** at the repo root (version from **`firefox_addon/manifest.json`**).
+
+**Icons:** Run **`npm run icons:extension`** again only after changing **`firefox_addon/icon-terminal-tab.svg`**.
 
 ---

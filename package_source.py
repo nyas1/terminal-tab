@@ -1,15 +1,21 @@
 import zipfile
 import os
+import json
 
 def create_source_zip(output_filename):
     # Files and folders to include in the source zip
     include_files = [
-        "App.tsx", "index.tsx", "index.css", "index.html", 
-        "constants.ts", "types.ts", "package.json", 
-        "package-lock.json", "tsconfig.json", "vite.config.js", 
-        "tailwind.config.js", "postcss.config.js", "package_addon.py"
+        "App.tsx", "index.tsx", "index.css", "index.html",
+        "constants.ts", "types.ts", "package.json",
+        "package-lock.json", "tsconfig.json", "vite.config.js",
+        "tailwind.config.js", "postcss.config.js", "package_addon.py",
+        "LICENSE", "metadata.json", "vite-env.d.ts",
     ]
-    include_dirs = ["components", "firefox_addon", "public", "scripts"]
+    # Human-readable source; reviewers run npm run package:extension to regenerate bundles.
+    include_dirs = [
+        "components", "contexts", "hooks", "utils", "tests",
+        "firefox_addon", "public", "scripts", "api",
+    ]
 
     # SECURITY: Use relative path to avoid exposing user info or hardcoded paths
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -37,6 +43,10 @@ def create_source_zip(output_filename):
 
                         full_path = os.path.join(root, file)
                         rel_path = os.path.relpath(full_path, base_dir)
+                        rel_posix = rel_path.replace(os.path.sep, '/')
+                        # Vite output copied into the add-on — not "source"; reproduced by package:extension
+                        if rel_posix.startswith('firefox_addon/assets/'):
+                            continue
                         # CRITICAL: Force forward slashes for Linux/AMO compatibility
                         arcname = rel_path.replace(os.path.sep, '/')
                         zipf.write(full_path, arcname)
@@ -44,4 +54,6 @@ def create_source_zip(output_filename):
     print(f"Successfully created source zip: {output_path}")
 
 if __name__ == "__main__":
-    create_source_zip("terminal-tab-source-1.0.1.zip")
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "package.json"), encoding="utf-8") as f:
+        version = json.load(f)["version"]
+    create_source_zip(f"terminal-tab-source-{version}.zip")

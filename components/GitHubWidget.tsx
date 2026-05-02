@@ -50,12 +50,12 @@ const getRelativeAge = (updatedAt: string): string => {
 
 const mapItem = (item: any): GitHubItem => ({
   id: item.id,
-  type: item.pull_request ? 'pr' : 'issue',
+  type: item.type === 'issue' || item.type === 'pr' ? item.type : (item.pull_request ? 'pr' : 'issue'),
   title: item.title || '(untitled)',
-  repo: getRepoFromHtmlUrl(item.html_url || ''),
+  repo: item.repo || getRepoFromHtmlUrl(item.html_url || ''),
   number: item.number || 0,
-  url: item.html_url || '#',
-  updatedAt: item.updated_at || ''
+  url: item.url || item.html_url || '#',
+  updatedAt: item.updatedAt || item.updated_at || ''
 });
 
 const normalizeUserApiOrigin = (raw: string): string => {

@@ -287,7 +287,7 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
             onAnilistShownListsChange(next.length > 0 ? next : ['CURRENT']);
             return;
         }
-        if (anilistShownLists.length >= 3) return;
+        if (anilistShownLists.length >= 2) return;
         onAnilistShownListsChange([...anilistShownLists, listId]);
     };
 
@@ -728,13 +728,13 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                             </span>
                         </div>
                         <div className="flex flex-col gap-1 border-t border-[var(--color-border)] pt-2 border-dashed">
-                            <span className="text-[var(--color-muted)] text-xs">Lists to show (max 3)</span>
+                            <span className="text-[var(--color-muted)] text-xs">Lists to show (max 2)</span>
                             <div className="flex flex-wrap gap-3">
                                 {ANILIST_LIST_OPTIONS.map((option) => (
                                     <div
                                         key={option.id}
                                         onClick={() => toggleAnilistList(option.id)}
-                                        className={`flex items-center gap-2 select-none ${anilistShownLists.length >= 3 && !anilistShownLists.includes(option.id) ? 'cursor-not-allowed opacity-60' : 'cursor-pointer group'}`}
+                                        className={`flex items-center gap-2 select-none ${anilistShownLists.length >= 2 && !anilistShownLists.includes(option.id) ? 'cursor-not-allowed opacity-60' : 'cursor-pointer group'}`}
                                     >
                                         <span className="font-mono text-[var(--color-accent)] font-bold">
                                             {anilistShownLists.includes(option.id) ? '[x]' : '[ ]'}
@@ -744,7 +744,7 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                                 ))}
                             </div>
                             <span className="text-[var(--color-muted)] text-[10px] opacity-70">
-                                Selected: {anilistShownLists.length}/3
+                                Selected: {anilistShownLists.length}/2
                             </span>
                         </div>
                     </div>

@@ -26,7 +26,7 @@ type WidgetState =
   | { status: 'success'; items: AnilistEntry[] };
 
 const ANILIST_ENDPOINT = 'https://graphql.anilist.co';
-const MAX_SHOWN_LISTS = 3;
+const MAX_SHOWN_LISTS = 2;
 const LIST_LABELS: Record<AnilistListStatus, string> = {
   CURRENT: 'Watching',
   COMPLETED: 'Completed',
@@ -228,7 +228,7 @@ export const AnilistWidget: React.FC = () => {
 
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-nowrap overflow-x-auto">
           {(selectedLists as AnilistFilter[]).map((option) => (
             <button
               key={option}

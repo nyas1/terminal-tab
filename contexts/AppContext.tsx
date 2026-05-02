@@ -131,7 +131,7 @@ interface AppContextType {
     /** AniList username used for currently watching anime. */
     anilistUsername: string;
     setAnilistUsername: (value: string) => void;
-    /** AniList list statuses to show in widget (max 3). */
+    /** AniList list statuses to show in widget (max 2). */
     anilistShownLists: ('CURRENT' | 'COMPLETED' | 'PAUSED' | 'DROPPED' | 'PLANNING')[];
     setAnilistShownLists: (value: ('CURRENT' | 'COMPLETED' | 'PAUSED' | 'DROPPED' | 'PLANNING')[]) => void;
     /** Where AniList widget links open: AniList page or Miruro watch page. */

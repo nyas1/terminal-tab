@@ -1,6 +1,6 @@
 const TRAKT_TOKEN_ENDPOINT = 'https://api.trakt.tv/oauth/token';
 const TRAKT_PLAYBACK_ENDPOINT = 'https://api.trakt.tv/sync/playback/episodes?extended=full,show';
-const TRAKT_WATCHED_SHOWS_ENDPOINT = 'https://api.trakt.tv/sync/watched/shows';
+const TRAKT_WATCHED_SHOWS_ENDPOINT = 'https://api.trakt.tv/sync/watched/shows?extended=full,images';
 const USER_AGENT = 'TerminalTab/1.0 (+https://github.com/nyas1/terminal-tab)';
 const TOKEN_SKEW_SECONDS = 60;
 const MAX_PROGRESS_LOOKUPS = 3;
@@ -147,7 +147,7 @@ const getShowMeta = async (accessToken, clientId, slug) => {
   const now = Date.now();
   const cached = showCache.get(key);
   if (cached && cached.expiresAtMs > now) return cached.value;
-  const res = await fetch(`https://api.trakt.tv/shows/${encodeURIComponent(slug)}?extended=full`, {
+  const res = await fetch(`https://api.trakt.tv/shows/${encodeURIComponent(slug)}?extended=full,images`, {
     headers: traktHeaders(accessToken, clientId)
   });
   if (!res.ok) return { posterUrl: '', episodes: null, airedEpisodes: null };
@@ -229,24 +229,37 @@ const mapPlaybackItem = async (item, accessToken, clientId) => {
 const mapContinueWatchingShow = async (item, accessToken, clientId) => {
   const slug = item?.show?.ids?.slug || '';
   if (!slug) return null;
+  const inlinePoster =
+    item?.show?.images?.poster?.thumb ||
+    item?.show?.images?.poster?.medium ||
+    item?.show?.images?.poster?.full ||
+    '';
   const progressRes = await fetch(
     `https://api.trakt.tv/shows/${encodeURIComponent(slug)}/progress/watched?hidden=false&specials=false&count_specials=false`,
     { headers: traktHeaders(accessToken, clientId) }
   );
-  if (!progressRes.ok) return null;
-  const progress = await progressRes.json();
+  let progress = null;
+  if (progressRes.ok) {
+    progress = await progressRes.json();
+  }
+  const watched = Number(progress?.completed ?? Number.NaN);
+  const aired = Number(progress?.aired ?? Number.NaN);
   const hasNext = Boolean(progress?.next_episode?.season != null && progress?.next_episode?.number != null);
-  const watched = Number(progress?.completed ?? 0);
-  const aired = Number(progress?.aired ?? 0);
-  if (!hasNext && !(Number.isFinite(watched) && Number.isFinite(aired) && watched < aired)) {
+  const isInProgress = hasNext || (Number.isFinite(watched) && Number.isFinite(aired) && watched < aired);
+  if (!isInProgress && progress) {
     return null;
   }
-  const [showMeta, seasonStats] = await Promise.all([
-    getShowMeta(accessToken, clientId, slug),
-    getSeasonStats(accessToken, clientId, slug, progress?.next_episode?.season ?? null)
-  ]);
+  const showMeta = inlinePoster
+    ? {
+        posterUrl: inlinePoster,
+        episodes: Number.isFinite(item?.show?.episodes) ? item.show.episodes : null,
+        airedEpisodes: Number.isFinite(item?.show?.aired_episodes) ? item.show.aired_episodes : null
+      }
+    : await getShowMeta(accessToken, clientId, slug);
   const season = progress?.next_episode?.season ?? null;
   const number = progress?.next_episode?.number ?? null;
+  const seasonStats =
+    season != null ? await getSeasonStats(accessToken, clientId, slug, season) : { airedEpisodes: null, totalEpisodes: null };
   return {
     id: `continue-${slug}`,
     showTitle: item?.show?.title || 'Unknown show',
@@ -257,7 +270,10 @@ const mapContinueWatchingShow = async (item, accessToken, clientId) => {
     progress: 0,
     updatedAt: progress?.last_watched_at || item?.last_watched_at || '',
     watchedEpisodes: Number.isFinite(watched) ? watched : null,
-    airedEpisodes: seasonStats.airedEpisodes ?? (Number.isFinite(aired) ? aired : null),
+    airedEpisodes:
+      seasonStats.airedEpisodes ??
+      (Number.isFinite(aired) ? aired : null) ??
+      showMeta.airedEpisodes,
     totalEpisodes: showMeta.episodes ?? showMeta.airedEpisodes ?? seasonStats.totalEpisodes,
     posterUrl: showMeta.posterUrl,
     url:
@@ -327,7 +343,7 @@ export default async function handler(req, res) {
       const watchedBody = await watchedRes.json();
       const watchedShows = (Array.isArray(watchedBody) ? watchedBody : [])
         .sort((a, b) => new Date(b?.last_watched_at || '').getTime() - new Date(a?.last_watched_at || '').getTime())
-        .slice(0, MAX_PROGRESS_LOOKUPS);
+        .slice(0, Math.max(limit * 2, MAX_PROGRESS_LOOKUPS));
       continueItems = (await Promise.all(watchedShows.map((entry) => mapContinueWatchingShow(entry, accessToken, clientId)))).filter(Boolean);
     }
     const deduped = new Map();

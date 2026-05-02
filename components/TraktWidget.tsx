@@ -56,10 +56,12 @@ const getRelativeAge = (updatedAt: string): string => {
 };
 
 const formatProgress = (item: TraktItem): string => {
-  const watched = item.watchedEpisodes ?? item.number ?? 0;
+  const watched = item.watchedEpisodes ?? item.number ?? null;
   const aired = item.airedEpisodes ?? watched;
   const total = item.totalEpisodes ?? '?';
-  return `${watched}/[${aired}]${total}`;
+  const watchedLabel = watched == null ? '?' : String(watched);
+  const airedLabel = aired == null ? '?' : String(aired);
+  return `${watchedLabel}/[${airedLabel}]${total}`;
 };
 
 export const TraktWidget: React.FC = () => {

@@ -7,10 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiProxyTarget =
-    env.VITE_DEV_API_PROXY ||
-    env.VITE_SPOTIFY_API_BASE_URL ||
-    'https://pixel-start.vercel.app'
+  const apiProxyTarget = (env.VITE_DEV_API_PROXY || '').trim()
 
   return {
     plugins: [react()],
@@ -25,13 +22,17 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true
     },
     server: {
-      proxy: {
-        '/api': {
-          target: apiProxyTarget,
-          changeOrigin: true,
-          secure: true
-        }
-      }
+      ...(apiProxyTarget
+        ? {
+            proxy: {
+              '/api': {
+                target: apiProxyTarget,
+                changeOrigin: true,
+                secure: true
+              }
+            }
+          }
+        : {})
     }
   }
 })

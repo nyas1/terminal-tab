@@ -11,17 +11,54 @@ type SpotifyNowPlaying = {
   playedAt?: string;
 };
 
+type SpotifyApiErrorBody = {
+  error?: string;
+  details?: string;
+  stage?: string;
+};
+
+const formatSpotifyErrorMessage = (
+  endpoint: string,
+  status: number | null,
+  body: SpotifyApiErrorBody | null,
+  isExtension: boolean
+): string => {
+  const hasHttpApi = /^https?:\/\//i.test(endpoint);
+  if (isExtension && !hasHttpApi) {
+    return 'Spotify: add your site URL in Settings → Advanced → Spotify API base URL (your deployed /api).';
+  }
+  if (status === 404) {
+    return 'Spotify: no /api route here — set Spotify API base URL in Settings.';
+  }
+  if (body?.stage === 'missing_env') {
+    return 'Spotify: deploy needs SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, and SPOTIFY_REFRESH_TOKEN.';
+  }
+  if (body?.details) {
+    return `Spotify: ${body.details}`;
+  }
+  if (status != null) {
+    return `Spotify unavailable (HTTP ${status})`;
+  }
+  return 'Spotify: network error — check API URL or connection.';
+};
+
+/** If the user omits the scheme, assume https (avoids browser treating host as a relative path). */
+const normalizeUserApiOrigin = (raw: string): string => {
+  let s = raw.trim().replace(/\/+$/, '');
+  if (!s) return '';
+  if (!/^https?:\/\//i.test(s)) s = `https://${s}`;
+  return s.replace(/\/+$/, '');
+};
+
 type WidgetState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'success'; data: SpotifyNowPlaying };
 
-const getEndpoint = () => {
-  const envBase = (import.meta.env.VITE_SPOTIFY_API_BASE_URL || '').trim();
-  const configuredBase = envBase.replace(/\/+$/, '');
-  if (configuredBase) {
-    return `${configuredBase}/api/spotify-now-playing`;
-  }
+/** Saved settings origin, or same-origin /api (no build-time default — same rule as the extension). */
+const resolveSpotifyApiUrl = (userBase: string) => {
+  const base = normalizeUserApiOrigin(userBase);
+  if (base) return `${base}/api/spotify-now-playing`;
   return '/api/spotify-now-playing';
 };
 
@@ -191,28 +228,45 @@ const SpotifyEqBars: React.FC<{ mode: 'playing' | 'idle' }> = ({ mode }) => (
 );
 
 export const SpotifyWidget: React.FC = () => {
-  const { spotifyPixelAlbumArt, spotifyPulse } = useAppContext();
+  const { spotifyPixelAlbumArt, spotifyPulse, spotifyApiBaseUrl } = useAppContext();
   const [state, setState] = useState<WidgetState>({ status: 'loading' });
 
   useEffect(() => {
     let isMounted = true;
-    const endpoint = getEndpoint();
+    const endpoint = resolveSpotifyApiUrl(spotifyApiBaseUrl);
 
     const fetchNowPlaying = async () => {
+      const isExtension = window.location.protocol === 'moz-extension:';
       try {
         const res = await fetch(endpoint, { cache: 'no-store' });
-        if (!res.ok) {
-          throw new Error(`API error: ${res.status}`);
+        let parsed: unknown = null;
+        try {
+          parsed = await res.json();
+        } catch {
+          parsed = null;
         }
-        const data = (await res.json()) as SpotifyNowPlaying;
+        if (!res.ok) {
+          const body =
+            parsed && typeof parsed === 'object'
+              ? (parsed as SpotifyApiErrorBody)
+              : null;
+          if (!isMounted) return;
+          setState({
+            status: 'error',
+            message: formatSpotifyErrorMessage(endpoint, res.status, body, isExtension)
+          });
+          return;
+        }
+        const data = parsed as SpotifyNowPlaying;
         if (!isMounted) return;
         setState({ status: 'success', data });
-      } catch (_error) {
+      } catch (err) {
         if (!isMounted) return;
-        const isExtension = window.location.protocol === 'moz-extension:';
+        const base = formatSpotifyErrorMessage(endpoint, null, null, isExtension);
+        const extra = err instanceof Error ? err.message : '';
         setState({
           status: 'error',
-          message: isExtension ? 'set VITE_SPOTIFY_API_BASE_URL for extension build' : 'spotify unavailable'
+          message: extra ? `${base} (${extra})` : base
         });
       }
     };
@@ -224,7 +278,7 @@ export const SpotifyWidget: React.FC = () => {
       isMounted = false;
       window.clearInterval(timer);
     };
-  }, []);
+  }, [spotifyApiBaseUrl]);
 
   const content = useMemo(() => {
     if (state.status === 'loading') {

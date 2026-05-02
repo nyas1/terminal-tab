@@ -116,6 +116,12 @@ interface AppContextType {
     /** When true, Spotify shows animated EQ bars; when false, the bar strip is hidden. */
     spotifyPulse: boolean;
     setSpotifyPulse: (value: boolean) => void;
+    /**
+     * Optional https origin for /api/spotify-now-playing. Empty = same-origin /api only
+     * (when this app is served from the host that exposes the API).
+     */
+    spotifyApiBaseUrl: string;
+    setSpotifyApiBaseUrl: (url: string) => void;
     isLayoutLocked: boolean;
     setIsLayoutLocked: (locked: boolean) => void;
     isResizingEnabled: boolean;
@@ -213,6 +219,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const [spotifyPixelAlbumArt, setSpotifyPixelAlbumArt] = useStickyState<boolean>(true, 'tui-spotify-pixel-album-art');
     const [spotifyPulse, setSpotifyPulse] = useStickyState<boolean>(true, 'tui-spotify-pulse');
+    const [spotifyApiBaseUrl, setSpotifyApiBaseUrl] = useStickyState<string>('', 'tui-spotify-api-base-url');
 
     const [isLayoutLocked, setIsLayoutLocked] = useStickyState<boolean>(true, 'tui-layout-locked-v2');
     const [isResizingEnabled, setIsResizingEnabled] = useStickyState<boolean>(false, 'tui-resizing-enabled');
@@ -403,6 +410,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setSearchSlashHotkeyEnabled(true);
         setSpotifyPixelAlbumArt(true);
         setSpotifyPulse(true);
+        setSpotifyApiBaseUrl('');
     };
 
     const removeExtraWidget = (key: string) => {
@@ -512,7 +520,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 searchEnabledEngines,
                 searchSlashHotkeyEnabled,
                 spotifyPixelAlbumArt,
-                spotifyPulse
+                spotifyPulse,
+                spotifyApiBaseUrl
             }
         };
         setPresets([...presets, newPreset]);
@@ -547,6 +556,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (d.searchSlashHotkeyEnabled !== undefined) setSearchSlashHotkeyEnabled(d.searchSlashHotkeyEnabled);
         if (d.spotifyPixelAlbumArt !== undefined) setSpotifyPixelAlbumArt(d.spotifyPixelAlbumArt);
         if (d.spotifyPulse !== undefined) setSpotifyPulse(d.spotifyPulse);
+        if (d.spotifyApiBaseUrl !== undefined) setSpotifyApiBaseUrl(d.spotifyApiBaseUrl);
     };
 
     const handleDeletePreset = (id: number) => {
@@ -583,6 +593,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         activeWidgets, setActiveWidgets,
         spotifyPixelAlbumArt, setSpotifyPixelAlbumArt,
         spotifyPulse, setSpotifyPulse,
+        spotifyApiBaseUrl, setSpotifyApiBaseUrl,
         isLayoutLocked, setIsLayoutLocked,
         isResizingEnabled, setIsResizingEnabled,
         presets, setPresets,

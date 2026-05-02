@@ -1,6 +1,6 @@
 {
-  "name": "TUI Pixel Startpage",
-  "description": "A highly customizable, terminal-styled startpage with theme support, productivity tools, and system stats.",
+  "name": "Terminal Tab",
+  "description": "Terminal Tab — terminal-styled new tab with themes, widgets, and productivity tools.",
   "requestFramePermissions": [
     "geolocation"
   ]

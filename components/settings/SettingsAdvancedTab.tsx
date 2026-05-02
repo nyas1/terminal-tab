@@ -151,6 +151,8 @@ interface SettingsAdvancedTabProps {
     onToggleSpotifyPixelAlbumArt: () => void;
     spotifyPulse: boolean;
     onToggleSpotifyPulse: () => void;
+    spotifyApiBaseUrl: string;
+    onSpotifyApiBaseUrlChange: (url: string) => void;
 
 }
 
@@ -204,6 +206,8 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
     onToggleSpotifyPixelAlbumArt,
     spotifyPulse,
     onToggleSpotifyPulse,
+    spotifyApiBaseUrl,
+    onSpotifyApiBaseUrlChange,
 }) => {
     const clickTimeoutsRef = React.useRef<Record<string, number>>({});
     const faviconFileRef = React.useRef<HTMLInputElement>(null);
@@ -570,6 +574,21 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                 <div className="border border-[var(--color-border)] p-4">
                     <h3 className="text-[var(--color-accent)] font-bold mb-2">Spotify Widget</h3>
                     <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[var(--color-muted)] text-xs">Spotify API base URL</span>
+                            <input
+                                type="url"
+                                inputMode="url"
+                                autoComplete="off"
+                                placeholder="https://your-deploy.vercel.app"
+                                className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans"
+                                value={spotifyApiBaseUrl}
+                                onChange={(e) => onSpotifyApiBaseUrlChange(e.target.value)}
+                            />
+                            <span className="text-[var(--color-muted)] text-[10px] opacity-70">
+                                Origin that serves <span className="font-mono">/api/spotify-now-playing</span> (no trailing slash), with <span className="font-mono">SPOTIFY_*</span> on the server. Leave empty when this page&apos;s host already exposes that <span className="font-mono">/api</span> route. Otherwise set your deployed origin here (e.g. Firefox extension).
+                            </span>
+                        </div>
                         <div
                             onClick={onToggleSpotifyPixelAlbumArt}
                             className="flex items-center gap-2 cursor-pointer select-none group"
@@ -802,7 +821,7 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
-                            a.download = `tui-dashboard-settings-${new Date().toISOString().slice(0, 10)}.json`;
+                            a.download = `terminal-tab-settings-${new Date().toISOString().slice(0, 10)}.json`;
                             a.click();
                             URL.revokeObjectURL(url);
                         }}
@@ -848,7 +867,7 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
             </div>
 
             <div className="text-[10px] text-[var(--color-muted)] mt-6 text-center opacity-50 font-mono">
-                v2.3
+                Terminal Tab v2.3
             </div>
         </div>
     );

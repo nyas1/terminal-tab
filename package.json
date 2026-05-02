@@ -1,10 +1,11 @@
 {
-  "name": "tui-pixel-startpage",
+  "name": "terminal-tab",
   "version": "2.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:extension": "tsc && vite build --mode extension",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -28,6 +28,7 @@ export const Settings: React.FC = () => {
         activeWidgets, toggleWidget, addExtraWidget,
         spotifyPixelAlbumArt, setSpotifyPixelAlbumArt,
         spotifyPulse, setSpotifyPulse,
+        spotifyApiBaseUrl, setSpotifyApiBaseUrl,
         showWidgetTitles, setShowWidgetTitles,
         customFont, setCustomFont,
         customTabTitle, setCustomTabTitle,
@@ -209,7 +210,7 @@ export const Settings: React.FC = () => {
                             title="Drag to move"
                         >
                             <div className="flex items-center gap-2 pointer-events-none">
-                                <span className="text-[var(--color-fg)] font-bold text-xs">user@tui-dashboard:~/settings</span>
+                                <span className="text-[var(--color-fg)] font-bold text-xs">user@terminal-tab:~/settings</span>
                             </div>
                             <div className="flex gap-3 text-[var(--color-muted)] font-mono text-xs">
                                 <button onClick={(e) => { e.stopPropagation(); setIsModalOpen(false); }} className="hover:text-[var(--color-accent)]">[x]</button>
@@ -323,6 +324,8 @@ export const Settings: React.FC = () => {
                                     onToggleSpotifyPixelAlbumArt={() => setSpotifyPixelAlbumArt(!spotifyPixelAlbumArt)}
                                     spotifyPulse={spotifyPulse}
                                     onToggleSpotifyPulse={() => setSpotifyPulse(!spotifyPulse)}
+                                    spotifyApiBaseUrl={spotifyApiBaseUrl}
+                                    onSpotifyApiBaseUrlChange={setSpotifyApiBaseUrl}
                                 />
                             )}
 

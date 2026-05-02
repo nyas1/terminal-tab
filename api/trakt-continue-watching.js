@@ -1,5 +1,6 @@
 const TRAKT_TOKEN_ENDPOINT = 'https://api.trakt.tv/oauth/token';
 const TRAKT_PLAYBACK_ENDPOINT = 'https://api.trakt.tv/sync/playback/episodes?extended=full,show';
+const USER_AGENT = 'TerminalTab/1.0 (+https://github.com/nyas1/terminal-tab)';
 
 const createFailure = (stage, message, statusCode) => {
   const error = new Error(message);
@@ -37,7 +38,13 @@ const getAccessToken = async () => {
 
   const tokenRes = await fetch(TRAKT_TOKEN_ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'User-Agent': USER_AGENT,
+      'trakt-api-key': clientId,
+      'trakt-api-version': '2'
+    },
     body: JSON.stringify(tokenBody)
   });
 
@@ -120,6 +127,8 @@ export default async function handler(req, res) {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'User-Agent': USER_AGENT,
         'trakt-api-key': clientId,
         'trakt-api-version': '2'
       }

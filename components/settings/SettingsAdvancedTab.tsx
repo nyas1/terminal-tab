@@ -18,6 +18,25 @@ const FAVICON_FILE_INPUT_MAX = 15 * 1024 * 1024;
 /** Keeps data URLs small enough for localStorage alongside other settings */
 const FAVICON_DATA_URL_MAX_LEN = 280_000;
 
+const INTEGRATIONS_SETUP_HREF =
+    'https://github.com/nyas1/terminal-tab/blob/main/INTEGRATIONS_SETUP.md';
+
+const IntegrationsSetupLinkHint: React.FC = () => (
+    <span className="text-[var(--color-muted)] text-[10px] opacity-70">
+        Setup:{' '}
+        <a
+            href={INTEGRATIONS_SETUP_HREF}
+            target="_blank"
+            rel="noreferrer"
+            className="font-mono text-[var(--color-accent)] underline hover:opacity-90"
+        >
+            INTEGRATIONS_SETUP.md
+        </a>
+    </span>
+);
+
+const INTEGRATION_API_REQUIRED_HINT = 'Integration API required.';
+
 function isProbablyImageFile(file: File): boolean {
     if (file.type.startsWith('image/')) return true;
     return /\.(png|jpe?g|gif|webp|bmp|avif|ico)$/i.test(file.name);
@@ -162,12 +181,10 @@ interface SettingsAdvancedTabProps {
     onToggleSpotifyPixelAlbumArt: () => void;
     spotifyPulse: boolean;
     onToggleSpotifyPulse: () => void;
-    spotifyApiBaseUrl: string;
-    onSpotifyApiBaseUrlChange: (url: string) => void;
+    integrationApiBaseUrl: string;
+    onIntegrationApiBaseUrlChange: (url: string) => void;
     githubUsername: string;
     onGithubUsernameChange: (username: string) => void;
-    githubApiBaseUrl: string;
-    onGithubApiBaseUrlChange: (url: string) => void;
     anilistUsername: string;
     onAnilistUsernameChange: (username: string) => void;
     anilistShownLists: ('CURRENT' | 'COMPLETED' | 'PAUSED' | 'DROPPED' | 'PLANNING')[];
@@ -233,12 +250,10 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
     onToggleSpotifyPixelAlbumArt,
     spotifyPulse,
     onToggleSpotifyPulse,
-    spotifyApiBaseUrl,
-    onSpotifyApiBaseUrlChange,
+    integrationApiBaseUrl,
+    onIntegrationApiBaseUrlChange,
     githubUsername,
     onGithubUsernameChange,
-    githubApiBaseUrl,
-    onGithubApiBaseUrlChange,
     anilistUsername,
     onAnilistUsernameChange,
     anilistShownLists,
@@ -788,25 +803,32 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                 </div>
             </div>
 
+            {(Boolean(activeWidgets.spotify) || Boolean(activeWidgets.github)) && (
+                <div className="border border-[var(--color-border)] p-4">
+                    <h3 className="text-[var(--color-accent)] font-bold mb-2">Integration API</h3>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[var(--color-muted)] text-xs">Base URL</span>
+                        <input
+                            type="url"
+                            inputMode="url"
+                            autoComplete="off"
+                            placeholder="https://your-deploy.vercel.app"
+                            className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans"
+                            value={integrationApiBaseUrl}
+                            onChange={(e) => onIntegrationApiBaseUrlChange(e.target.value)}
+                        />
+                        <IntegrationsSetupLinkHint />
+                    </div>
+                </div>
+            )}
+
             {activeWidgets.spotify && (
                 <div className="border border-[var(--color-border)] p-4">
                     <h3 className="text-[var(--color-accent)] font-bold mb-2">Spotify Widget</h3>
+                    {!integrationApiBaseUrl.trim() ? (
+                        <p className="text-[10px] font-mono text-[var(--color-muted)] mb-2">{INTEGRATION_API_REQUIRED_HINT}</p>
+                    ) : null}
                     <div className="flex flex-col gap-3">
-                        <div className="flex flex-col gap-1">
-                            <span className="text-[var(--color-muted)] text-xs">Spotify API base URL</span>
-                            <input
-                                type="url"
-                                inputMode="url"
-                                autoComplete="off"
-                                placeholder="https://your-deploy.vercel.app"
-                                className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans"
-                                value={spotifyApiBaseUrl}
-                                onChange={(e) => onSpotifyApiBaseUrlChange(e.target.value)}
-                            />
-                            <span className="text-[var(--color-muted)] text-[10px] opacity-70">
-                                Origin that serves <span className="font-mono">/api/spotify-now-playing</span> (no trailing slash), with <span className="font-mono">SPOTIFY_*</span> on the server. Leave empty when this page&apos;s host already exposes that <span className="font-mono">/api</span> route. Otherwise set your deployed origin here (e.g. Firefox extension).
-                            </span>
-                        </div>
                         <div
                             onClick={onToggleSpotifyPixelAlbumArt}
                             className="flex items-center gap-2 cursor-pointer select-none group"
@@ -836,6 +858,9 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
             {activeWidgets.github && (
                 <div className="border border-[var(--color-border)] p-4">
                     <h3 className="text-[var(--color-accent)] font-bold mb-2">GitHub Widget</h3>
+                    {!integrationApiBaseUrl.trim() ? (
+                        <p className="text-[10px] font-mono text-[var(--color-muted)] mb-2">{INTEGRATION_API_REQUIRED_HINT}</p>
+                    ) : null}
                     <div className="flex flex-col gap-3">
                         <div className="flex flex-col gap-1">
                             <span className="text-[var(--color-muted)] text-xs">GitHub Username</span>
@@ -847,21 +872,6 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                                 value={githubUsername}
                                 onChange={(e) => onGithubUsernameChange(e.target.value)}
                             />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <span className="text-[var(--color-muted)] text-xs">GitHub API base URL</span>
-                            <input
-                                type="url"
-                                inputMode="url"
-                                autoComplete="off"
-                                placeholder="https://your-deploy.vercel.app"
-                                className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans"
-                                value={githubApiBaseUrl}
-                                onChange={(e) => onGithubApiBaseUrlChange(e.target.value)}
-                            />
-                            <span className="text-[var(--color-muted)] text-[10px] opacity-70">
-                                Origin that serves <span className="font-mono">/api/github-work-items</span> (no trailing slash), with <span className="font-mono">GITHUB_TOKEN</span> set on the server. Leave empty for same-origin.
-                            </span>
                         </div>
                     </div>
                 </div>
@@ -898,11 +908,8 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                                     <span className="text-[var(--color-fg)] text-sm">Miruro</span>
                                 </div>
                             </div>
-                            <span className="text-[var(--color-muted)] text-[10px] opacity-70">
-                                Miruro format: https://www.miruro.to/watch/&lt;anilist-id&gt;/
-                            </span>
                         </div>
-                        <div className="flex flex-col gap-1 border-t border-[var(--color-border)] pt-2 border-dashed">
+                        <div className="flex flex-col gap-1">
                             <span className="text-[var(--color-muted)] text-xs">Lists to show (max 3)</span>
                             <div className="flex flex-wrap gap-3">
                                 {ANILIST_LIST_OPTIONS.map((option) => (
@@ -930,10 +937,7 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                 <div className="border border-[var(--color-border)] p-4">
                     <h3 className="text-[var(--color-accent)] font-bold mb-2">Trakt Widget</h3>
                     <div className="flex flex-col gap-3">
-                        <p className="text-[10px] font-mono text-[var(--color-muted)]">
-                            Trakt talks straight to api.trakt.tv from this tab. On the hosted website that is usually blocked by CORS; use the Firefox extension or local dev (npm run dev). Extension/local: paste your Trakt app Client ID and Secret below — kept in local storage on this device only.
-                        </p>
-                        <div className="flex flex-col gap-1 border-t border-[var(--color-border)] pt-2 border-dashed">
+                        <div className="flex flex-col gap-1">
                             <span className="text-[var(--color-muted)] text-xs">Trakt Client ID</span>
                             <input
                                 type="text"
@@ -957,18 +961,15 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                             />
                         </div>
                         <div className="flex flex-col gap-1 border-t border-[var(--color-border)] pt-2 border-dashed">
-                            <span className="text-[var(--color-muted)] text-xs">TMDB API Token (v4 Read Access Token)</span>
+                            <span className="text-[var(--color-muted)] text-xs">TMDB API Key (for posters)</span>
                             <input
                                 type="password"
                                 autoComplete="off"
-                                placeholder="optional, used as primary poster source"
+                                placeholder="optional"
                                 className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans"
                                 value={tmdbApiKey}
                                 onChange={(e) => onTmdbApiKeyChange(e.target.value)}
                             />
-                            <span className="text-[var(--color-muted)] text-[10px] opacity-70">
-                                If set, Trakt widget uses TMDB posters first, then Trakt/Walter fallback.
-                            </span>
                         </div>
                         {readTraktJson<TraktStoredAuth>(TRAKT_AUTH_STORAGE_KEY)?.refreshToken ? (
                             <p className="text-[10px] font-mono text-[var(--color-muted)]">Status: connected (tokens in local storage)</p>

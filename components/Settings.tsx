@@ -28,9 +28,8 @@ export const Settings: React.FC = () => {
         activeWidgets, toggleWidget, addExtraWidget,
         spotifyPixelAlbumArt, setSpotifyPixelAlbumArt,
         spotifyPulse, setSpotifyPulse,
-        spotifyApiBaseUrl, setSpotifyApiBaseUrl,
+        integrationApiBaseUrl, setIntegrationApiBaseUrl,
         githubUsername, setGithubUsername,
-        githubApiBaseUrl, setGithubApiBaseUrl,
         anilistUsername, setAnilistUsername,
         anilistShownLists, setAnilistShownLists,
         anilistLinkTarget, setAnilistLinkTarget,
@@ -332,12 +331,10 @@ export const Settings: React.FC = () => {
                                     onToggleSpotifyPixelAlbumArt={() => setSpotifyPixelAlbumArt(!spotifyPixelAlbumArt)}
                                     spotifyPulse={spotifyPulse}
                                     onToggleSpotifyPulse={() => setSpotifyPulse(!spotifyPulse)}
-                                    spotifyApiBaseUrl={spotifyApiBaseUrl}
-                                    onSpotifyApiBaseUrlChange={setSpotifyApiBaseUrl}
+                                    integrationApiBaseUrl={integrationApiBaseUrl}
+                                    onIntegrationApiBaseUrlChange={setIntegrationApiBaseUrl}
                                     githubUsername={githubUsername}
                                     onGithubUsernameChange={setGithubUsername}
-                                    githubApiBaseUrl={githubApiBaseUrl}
-                                    onGithubApiBaseUrlChange={setGithubApiBaseUrl}
                                     anilistUsername={anilistUsername}
                                     onAnilistUsernameChange={setAnilistUsername}
                                     anilistShownLists={anilistShownLists}

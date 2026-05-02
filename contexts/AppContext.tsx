@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useStickyState } from '../hooks/useStickyState';
 import { THEMES, LINKS_DATA, SEARCH_ENGINES } from '../constants';
 import { TodoItem, LinkGroup, Theme, Layouts, FunOptions, SearchEngineId } from '../types';
@@ -117,17 +117,13 @@ interface AppContextType {
     spotifyPulse: boolean;
     setSpotifyPulse: (value: boolean) => void;
     /**
-     * Optional https origin for /api/spotify-now-playing. Empty = same-origin /api only
-     * (when this app is served from the host that exposes the API).
+     * Optional https origin for hosted /api routes (Spotify, GitHub widgets). Empty = same-origin /api.
      */
-    spotifyApiBaseUrl: string;
-    setSpotifyApiBaseUrl: (url: string) => void;
+    integrationApiBaseUrl: string;
+    setIntegrationApiBaseUrl: (url: string) => void;
     /** GitHub username used to query assigned/authored issues and PRs. */
     githubUsername: string;
     setGithubUsername: (value: string) => void;
-    /** Optional https origin for /api/github-work-items. Empty = same-origin /api. */
-    githubApiBaseUrl: string;
-    setGithubApiBaseUrl: (url: string) => void;
     /** AniList username used for currently watching anime. */
     anilistUsername: string;
     setAnilistUsername: (value: string) => void;
@@ -246,9 +242,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const [spotifyPixelAlbumArt, setSpotifyPixelAlbumArt] = useStickyState<boolean>(true, 'tui-spotify-pixel-album-art');
     const [spotifyPulse, setSpotifyPulse] = useStickyState<boolean>(true, 'tui-spotify-pulse');
-    const [spotifyApiBaseUrl, setSpotifyApiBaseUrl] = useStickyState<string>('', 'tui-spotify-api-base-url');
+    const [integrationApiBaseUrl, setIntegrationApiBaseUrl] = useStickyState<string>('', 'tui-integration-api-base-url');
     const [githubUsername, setGithubUsername] = useStickyState<string>('', 'tui-github-username');
-    const [githubApiBaseUrl, setGithubApiBaseUrl] = useStickyState<string>('', 'tui-github-api-base-url');
     const [anilistUsername, setAnilistUsername] = useStickyState<string>('', 'tui-anilist-username');
     const [anilistShownLists, setAnilistShownLists] = useStickyState<('CURRENT' | 'COMPLETED' | 'PAUSED' | 'DROPPED' | 'PLANNING')[]>(['CURRENT'], 'tui-anilist-shown-lists');
     const [anilistLinkTarget, setAnilistLinkTarget] = useStickyState<'anilist' | 'miruro'>('anilist', 'tui-anilist-link-target');
@@ -262,6 +257,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const allThemes = { ...THEMES, ...customThemes };
     const isCrt = currentTheme === 'crt';
+
+    const migratedSplitApiBaseRef = useRef(false);
+    useEffect(() => {
+        if (migratedSplitApiBaseRef.current) return;
+        migratedSplitApiBaseRef.current = true;
+
+        const readStickyString = (key: string): string => {
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw == null) return '';
+                const v = JSON.parse(raw);
+                return typeof v === 'string' ? v : '';
+            } catch {
+                return '';
+            }
+        };
+
+        const cur = readStickyString('tui-integration-api-base-url');
+        const fromSpotify = readStickyString('tui-spotify-api-base-url');
+        const fromGithub = readStickyString('tui-github-api-base-url');
+        const legacy = fromSpotify || fromGithub;
+
+        if (!cur && legacy) setIntegrationApiBaseUrl(legacy);
+
+        localStorage.removeItem('tui-spotify-api-base-url');
+        localStorage.removeItem('tui-github-api-base-url');
+    }, [setIntegrationApiBaseUrl]);
 
     useEffect(() => {
         const title = (customTabTitle ?? '').trim() || '~';
@@ -448,9 +470,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setSearchSlashHotkeyEnabled(true);
         setSpotifyPixelAlbumArt(true);
         setSpotifyPulse(true);
-        setSpotifyApiBaseUrl('');
+        setIntegrationApiBaseUrl('');
         setGithubUsername('');
-        setGithubApiBaseUrl('');
         setAnilistUsername('');
         setAnilistShownLists(['CURRENT']);
         setAnilistLinkTarget('anilist');
@@ -566,9 +587,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 searchSlashHotkeyEnabled,
                 spotifyPixelAlbumArt,
                 spotifyPulse,
-                spotifyApiBaseUrl,
+                integrationApiBaseUrl,
                 githubUsername,
-                githubApiBaseUrl,
                 anilistUsername,
                 anilistShownLists,
                 anilistLinkTarget,
@@ -609,9 +629,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (d.searchSlashHotkeyEnabled !== undefined) setSearchSlashHotkeyEnabled(d.searchSlashHotkeyEnabled);
         if (d.spotifyPixelAlbumArt !== undefined) setSpotifyPixelAlbumArt(d.spotifyPixelAlbumArt);
         if (d.spotifyPulse !== undefined) setSpotifyPulse(d.spotifyPulse);
-        if (d.spotifyApiBaseUrl !== undefined) setSpotifyApiBaseUrl(d.spotifyApiBaseUrl);
+        if (d.integrationApiBaseUrl !== undefined) setIntegrationApiBaseUrl(d.integrationApiBaseUrl);
+        else {
+            const legacy = d.spotifyApiBaseUrl || d.githubApiBaseUrl;
+            if (legacy !== undefined) setIntegrationApiBaseUrl(legacy);
+        }
         if (d.githubUsername !== undefined) setGithubUsername(d.githubUsername);
-        if (d.githubApiBaseUrl !== undefined) setGithubApiBaseUrl(d.githubApiBaseUrl);
         if (d.anilistUsername !== undefined) setAnilistUsername(d.anilistUsername);
         if (d.anilistShownLists !== undefined) setAnilistShownLists(d.anilistShownLists);
         if (d.anilistLinkTarget !== undefined) setAnilistLinkTarget(d.anilistLinkTarget);
@@ -654,9 +677,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         activeWidgets, setActiveWidgets,
         spotifyPixelAlbumArt, setSpotifyPixelAlbumArt,
         spotifyPulse, setSpotifyPulse,
-        spotifyApiBaseUrl, setSpotifyApiBaseUrl,
+        integrationApiBaseUrl, setIntegrationApiBaseUrl,
         githubUsername, setGithubUsername,
-        githubApiBaseUrl, setGithubApiBaseUrl,
         anilistUsername, setAnilistUsername,
         anilistShownLists, setAnilistShownLists,
         anilistLinkTarget, setAnilistLinkTarget,

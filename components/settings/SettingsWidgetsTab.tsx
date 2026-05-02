@@ -12,7 +12,8 @@ export const SettingsWidgetsTab: React.FC<SettingsWidgetsTabProps> = ({
     onToggleWidget,
     setWidgetToDuplicate,
 }) => {
-    const CoreWidgets = ['search', 'datetime', 'stats', 'weather', 'todo', 'links', 'spotify', 'github', 'anilist', 'trakt'];
+    const CoreWidgets = ['search', 'datetime', 'stats', 'weather', 'todo', 'links'];
+    const IntegrationWidgets = ['spotify', 'github', 'anilist', 'trakt'];
     const FunWidgets = ['donut', 'matrix', 'pipes', 'snake', 'life', 'fireworks', 'starfield', 'rain', 'maze'];
 
     return (
@@ -22,6 +23,21 @@ export const SettingsWidgetsTab: React.FC<SettingsWidgetsTabProps> = ({
                 <h3 className="text-[var(--color-accent)] font-bold mb-4 border-b border-[var(--color-border)] pb-2">Core Widgets</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {CoreWidgets.map(w => (
+                        <WidgetToggle
+                            key={w}
+                            id={w}
+                            label={w}
+                            isActive={!!activeWidgets[w]}
+                            onToggle={onToggleWidget}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            <div>
+                <h3 className="text-[var(--color-accent)] font-bold mb-4 border-b border-[var(--color-border)] pb-2">Integrations</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {IntegrationWidgets.map(w => (
                         <WidgetToggle
                             key={w}
                             id={w}

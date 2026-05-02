@@ -25,10 +25,10 @@ const formatSpotifyErrorMessage = (
 ): string => {
   const hasHttpApi = /^https?:\/\//i.test(endpoint);
   if (isExtension && !hasHttpApi) {
-    return 'Spotify: add your site URL in Settings → Advanced → Spotify API base URL (your deployed /api).';
+    return 'Spotify: add your deployed origin in Settings → Advanced → Integration API (base URL).';
   }
   if (status === 404) {
-    return 'Spotify: no /api route here — set Spotify API base URL in Settings.';
+    return 'Spotify: no /api route here — set Integration API base URL in Settings.';
   }
   if (body?.stage === 'missing_env') {
     return 'Spotify: deploy needs SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, and SPOTIFY_REFRESH_TOKEN.';
@@ -232,12 +232,12 @@ const SpotifyEqBars: React.FC<{ mode: 'playing' | 'idle' }> = ({ mode }) => (
 );
 
 export const SpotifyWidget: React.FC = () => {
-  const { spotifyPixelAlbumArt, spotifyPulse, spotifyApiBaseUrl } = useAppContext();
+  const { spotifyPixelAlbumArt, spotifyPulse, integrationApiBaseUrl } = useAppContext();
   const [state, setState] = useState<WidgetState>({ status: 'loading' });
 
   useEffect(() => {
     let isMounted = true;
-    const endpoint = resolveSpotifyApiUrl(spotifyApiBaseUrl);
+    const endpoint = resolveSpotifyApiUrl(integrationApiBaseUrl);
 
     const fetchNowPlaying = async () => {
       const isExtension = window.location.protocol === 'moz-extension:';
@@ -294,7 +294,7 @@ export const SpotifyWidget: React.FC = () => {
       isMounted = false;
       window.clearInterval(timer);
     };
-  }, [spotifyApiBaseUrl]);
+  }, [integrationApiBaseUrl]);
 
   const content = useMemo(() => {
     if (state.status === 'loading') {

@@ -85,7 +85,7 @@ const resolveSameOriginGithubApiUrl = (username: string) =>
   `/api/github-work-items?username=${encodeURIComponent(username)}&limit=${LIMIT}`;
 
 export const GitHubWidget: React.FC = () => {
-  const { githubUsername, githubApiBaseUrl } = useAppContext();
+  const { githubUsername, integrationApiBaseUrl } = useAppContext();
   const [state, setState] = useState<WidgetState>({ status: 'loading' });
   const [filter, setFilter] = useState<ItemFilter>('all');
 
@@ -100,7 +100,7 @@ export const GitHubWidget: React.FC = () => {
     const fetchItems = async () => {
       try {
         const isExtension = window.location.protocol === 'moz-extension:';
-        const endpoint = resolveGithubApiUrl(githubApiBaseUrl, username);
+        const endpoint = resolveGithubApiUrl(integrationApiBaseUrl, username);
         const issuesRes = await (async () => {
           try {
             return await fetch(endpoint, { cache: 'no-store' });
@@ -124,10 +124,10 @@ export const GitHubWidget: React.FC = () => {
           } catch {
             parsed = null;
           }
-          if (isExtension && !/^https?:\/\//i.test(githubApiBaseUrl.trim())) {
-            throw new Error('set GitHub API base URL in Settings -> Advanced.');
+          if (isExtension && !/^https?:\/\//i.test(integrationApiBaseUrl.trim())) {
+            throw new Error('set Integration API base URL in Settings -> Advanced.');
           }
-          if (status === 404) throw new Error('no /api route here — set GitHub API base URL.');
+          if (status === 404) throw new Error('no /api route here — set Integration API base URL.');
           if (parsed?.stage === 'missing_env') throw new Error('server missing GITHUB_TOKEN env var.');
           if (parsed?.details) throw new Error(parsed.details);
           throw new Error(`GitHub API route error (${status})`);
@@ -161,7 +161,7 @@ export const GitHubWidget: React.FC = () => {
       alive = false;
       window.clearInterval(timer);
     };
-  }, [githubApiBaseUrl, githubUsername]);
+  }, [integrationApiBaseUrl, githubUsername]);
 
   const content = useMemo(() => {
     if (state.status === 'loading') {

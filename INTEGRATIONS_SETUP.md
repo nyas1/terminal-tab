@@ -57,8 +57,8 @@ Get a Spotify refresh token, then set three Vercel env vars.
 ### 5. Configure in Terminal Tab
 
 - Enable **Spotify** widget.
-- Open **Settings -> Advanced -> Spotify Widget**.
-- Set **Spotify API base URL** to `https://<your-project>.vercel.app` (no trailing slash) when needed (extension / cross-origin host).
+- Open **Settings -> Advanced**.
+- Under **Integration API**, set **Base URL** to `https://<your-project>.vercel.app` (no trailing slash) when needed (extension / cross-origin host).
 
 ## GitHub Issues & PRs
 
@@ -73,9 +73,9 @@ Widget endpoint: `/api/github-work-items` (`api/github-work-items.js` on Vercel:
 ### 2. Configure in Terminal Tab
 
 - Enable **GitHub** widget.
-- Open **Settings -> Advanced -> GitHub Widget**.
-- Set **GitHub Username**.
-- Set **GitHub API base URL** to your deployed origin.
+- Open **Settings -> Advanced**.
+- Under **Integration API**, set **Base URL** to your deployed origin (same value as Spotify if you use both).
+- In **GitHub Widget**, set **GitHub Username**.
 
 ## AniList
 

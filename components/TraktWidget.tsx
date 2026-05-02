@@ -271,6 +271,11 @@ const readErrorSuffix = async (res: Response): Promise<string> => {
   }
 };
 
+const formatTraktNetworkError = (message: string): string =>
+  /NetworkError when attempting to fetch resource|Failed to fetch/i.test(message)
+    ? 'Network fetch blocked. Reload/update the addon and verify cross-site permission for api.trakt.tv, then retry.'
+    : message;
+
 async function getRefreshedAuth(clientId: string, clientSecret: string): Promise<TraktStoredAuth> {
   const auth = readTraktJson<TraktStoredAuth>(TRAKT_AUTH_STORAGE_KEY);
   if (!auth?.accessToken || !auth?.refreshToken) {
@@ -602,7 +607,7 @@ export const TraktWidget: React.FC = () => {
         setState({ status: 'success', nowWatching, continueItems, fallbackItems });
       } catch (error) {
         if (!alive) return;
-        const msg = error instanceof Error ? error.message : 'unknown error';
+        const msg = formatTraktNetworkError(error instanceof Error ? error.message : 'unknown error');
         setState({ status: 'error', message: `Trakt: ${msg}` });
       }
     };

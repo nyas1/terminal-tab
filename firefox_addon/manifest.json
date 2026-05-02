@@ -22,5 +22,9 @@
       "strict_min_version": "142.0"
     }
   },
+  "permissions": [
+    "https://api.trakt.tv/*",
+    "https://api.themoviedb.org/*"
+  ],
   "content_security_policy": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; connect-src *;"
 }

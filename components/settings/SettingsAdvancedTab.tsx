@@ -251,6 +251,11 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
     traktClientSecret,
     onTraktClientSecretChange,
 }) => {
+    const formatTraktNetworkError = (message: string) =>
+        /NetworkError when attempting to fetch resource|Failed to fetch/i.test(message)
+            ? 'Network fetch blocked. If you are using the Firefox addon, update/reload it so cross-site API permissions are applied, then retry.'
+            : message;
+
     const clickTimeoutsRef = React.useRef<Record<string, number>>({});
     const faviconFileRef = React.useRef<HTMLInputElement>(null);
     const [traktDeviceState, setTraktDeviceState] = useState<TraktDeviceCodeState | null>(() =>
@@ -321,7 +326,7 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
             writeTraktJson(TRAKT_DEVICE_STORAGE_KEY, nextState);
             setTraktAuthMessage('Open the activation URL, enter the code, then wait for approval.');
         } catch (error) {
-            const msg = error instanceof Error ? error.message : 'unknown error';
+            const msg = formatTraktNetworkError(error instanceof Error ? error.message : 'unknown error');
             setTraktAuthMessage(`Trakt: ${msg}`);
         }
     }, [traktClientId, traktClientSecret]);
@@ -396,7 +401,7 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                 throw new Error(`device token error (${res.status})${extra ? `: ${String(extra)}` : ''}`);
             } catch (error) {
                 if (cancelled) return;
-                const msg = error instanceof Error ? error.message : 'unknown error';
+                const msg = formatTraktNetworkError(error instanceof Error ? error.message : 'unknown error');
                 setTraktAuthMessage(`Trakt: ${msg}`);
             }
         };

@@ -81,14 +81,17 @@ export default async function handler(req, res) {
 
   try {
     const token = getToken();
-    const issueQ = `is:open is:issue user:${usernameRaw}`;
-    const prQ = `is:open is:pr user:${usernameRaw}`;
-    const [issueItems, prItems] = await Promise.all([
-      fetchSearch(token, issueQ, limit),
-      fetchSearch(token, prQ, limit)
-    ]);
+    const queries = [
+      // Open issues/PRs in repositories owned by this account (opened by anyone)
+      `is:open is:issue user:${usernameRaw}`,
+      `is:open is:pr user:${usernameRaw}`
+    ];
 
-    const merged = [...issueItems, ...prItems]
+    const resultGroups = await Promise.all(
+      queries.map((q) => fetchSearch(token, q, limit))
+    );
+
+    const merged = resultGroups.flat()
       .map(mapItem)
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 

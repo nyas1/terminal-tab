@@ -17,7 +17,6 @@ type WidgetState =
   | { status: 'error'; message: string }
   | { status: 'success'; items: GitHubItem[] };
 
-const LIMIT = 6;
 type ItemFilter = 'all' | 'issue' | 'pr';
 
 type GitHubApiErrorBody = {
@@ -65,9 +64,9 @@ const normalizeUserApiOrigin = (raw: string): string => {
   return s.replace(/\/+$/, '');
 };
 
-const resolveGithubApiUrl = (userBase: string, username: string) => {
+const resolveGithubApiUrl = (userBase: string, username: string, limit: number) => {
   const base = normalizeUserApiOrigin(userBase);
-  const qs = `username=${encodeURIComponent(username)}&limit=${LIMIT}`;
+  const qs = `username=${encodeURIComponent(username)}&limit=${limit}`;
   const apiPath = `/api/github-work-items?${qs}`;
   if (base) {
     // Accept either origin ("https://site") or full endpoint URL pasted by user.
@@ -81,11 +80,11 @@ const resolveGithubApiUrl = (userBase: string, username: string) => {
   return apiPath;
 };
 
-const resolveSameOriginGithubApiUrl = (username: string) =>
-  `/api/github-work-items?username=${encodeURIComponent(username)}&limit=${LIMIT}`;
+const resolveSameOriginGithubApiUrl = (username: string, limit: number) =>
+  `/api/github-work-items?username=${encodeURIComponent(username)}&limit=${limit}`;
 
 export const GitHubWidget: React.FC = () => {
-  const { githubUsername, integrationApiBaseUrl } = useAppContext();
+  const { githubUsername, githubLimit, integrationApiBaseUrl } = useAppContext();
   const [state, setState] = useState<WidgetState>({ status: 'loading' });
   const [filter, setFilter] = useState<ItemFilter>('all');
 
@@ -100,7 +99,8 @@ export const GitHubWidget: React.FC = () => {
     const fetchItems = async () => {
       try {
         const isExtension = window.location.protocol === 'moz-extension:';
-        const endpoint = resolveGithubApiUrl(integrationApiBaseUrl, username);
+        const safeLimit = Number.isFinite(githubLimit) ? Math.min(20, Math.max(1, Math.floor(githubLimit)))  : 10;
+        const endpoint = resolveGithubApiUrl(integrationApiBaseUrl, username, safeLimit);
         const issuesRes = await (async () => {
           try {
             return await fetch(endpoint, { cache: 'no-store' });
@@ -108,7 +108,7 @@ export const GitHubWidget: React.FC = () => {
             // In strict browser privacy modes, cross-origin requests can fail with
             // generic NetworkError. Retry same-origin /api on localhost dev.
             const isLocalhost = /^localhost$|^127\.0\.0\.1$/.test(window.location.hostname);
-            const fallback = resolveSameOriginGithubApiUrl(username);
+            const fallback = resolveSameOriginGithubApiUrl(username, safeLimit);
             if (!isLocalhost || endpoint === fallback) throw err;
             return await fetch(fallback, { cache: 'no-store' });
           }
@@ -141,7 +141,6 @@ export const GitHubWidget: React.FC = () => {
           if (seen.has(key)) continue;
           seen.add(key);
           deduped.push(item);
-          if (deduped.length >= LIMIT) break;
         }
 
         if (!alive) return;
@@ -161,7 +160,7 @@ export const GitHubWidget: React.FC = () => {
       alive = false;
       window.clearInterval(timer);
     };
-  }, [integrationApiBaseUrl, githubUsername]);
+  }, [integrationApiBaseUrl, githubLimit, githubUsername]);
 
   const content = useMemo(() => {
     if (state.status === 'loading') {
@@ -171,7 +170,7 @@ export const GitHubWidget: React.FC = () => {
       return <p className="text-xs leading-snug text-[var(--color-muted,#888888)]">{state.message}</p>;
     }
     if (state.items.length === 0) {
-      return <p className="text-xs text-[var(--color-muted,#888888)]">No open issues or PRs found in repositories owned by this user.</p>;
+      return <p className="text-xs text-[var(--color-muted,#888888)]">No open issues or PRs found for this account.</p>;
     }
 
     const filteredItems =

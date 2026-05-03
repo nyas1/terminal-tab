@@ -30,6 +30,7 @@ export const Settings: React.FC = () => {
         spotifyPulse, setSpotifyPulse,
         integrationApiBaseUrl, setIntegrationApiBaseUrl,
         githubUsername, setGithubUsername,
+        githubLimit, setGithubLimit,
         anilistUsername, setAnilistUsername,
         anilistShownLists, setAnilistShownLists,
         anilistLinkTarget, setAnilistLinkTarget,
@@ -335,6 +336,8 @@ export const Settings: React.FC = () => {
                                     onIntegrationApiBaseUrlChange={setIntegrationApiBaseUrl}
                                     githubUsername={githubUsername}
                                     onGithubUsernameChange={setGithubUsername}
+                                    githubLimit={githubLimit}
+                                    onGithubLimitChange={setGithubLimit}
                                     anilistUsername={anilistUsername}
                                     onAnilistUsernameChange={setAnilistUsername}
                                     anilistShownLists={anilistShownLists}

@@ -8,14 +8,15 @@ export const useWeather = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const formatLocationName = (geoData: any): string => {
-    if (!geoData || typeof geoData !== 'object') return 'Unknown';
+  const formatLocationParts = (geoData: any): { locality: string; state: string } => {
+    if (!geoData || typeof geoData !== 'object') return { locality: 'Unknown', state: '' };
 
-    const locality = geoData.locality || geoData.localityInfo?.informative?.[0]?.name || '';
-    const city = geoData.city || geoData.locality || geoData.principalSubdivision || '';
-    const state = geoData.principalSubdivision || '';
-    const compact = locality || city || state;
-    return compact || 'Unknown';
+    const locality = String(geoData.locality || geoData.localityInfo?.informative?.[0]?.name || geoData.city || '').trim();
+    const state = String(geoData.principalSubdivision || '').trim();
+    return {
+      locality: locality || state || 'Unknown',
+      state
+    };
   };
 
   const fetchWeather = useCallback(async (lat: number, lon: number, options: { defaultCity?: string, showError?: boolean } = {}) => {
@@ -24,30 +25,30 @@ export const useWeather = () => {
     try {
       // Parallelize requests
       const geoPromise = (async () => {
-        let resolvedCity = defaultCity || "Unknown";
+        let resolvedLocation = { locality: defaultCity || 'Unknown', state: '' };
         if (!defaultCity) {
           try {
             const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
             const geoData = await geoRes.json();
-            const formattedLocation = formatLocationName(geoData);
-            if (formattedLocation) resolvedCity = formattedLocation;
+            const formattedLocation = formatLocationParts(geoData);
+            if (formattedLocation.locality) resolvedLocation = formattedLocation;
           } catch (e) { /* ignore */ }
         }
-        return resolvedCity;
+        return resolvedLocation;
       })();
 
       const weatherPromise = fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,is_day,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation,visibility&hourly=temperature_2m,weather_code,precipitation_probability&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`
       );
 
-      const [city, response] = await Promise.all([geoPromise, weatherPromise]);
+      const [location, response] = await Promise.all([geoPromise, weatherPromise]);
 
       if (!response.ok) throw new Error('API Error');
 
       const result = await response.json();
 
       // Use the new helper function
-      const newData = processWeatherData(city, result);
+      const newData = processWeatherData(location.locality, result, new Date(), location.state);
 
       setData(newData);
       setLoading(false);

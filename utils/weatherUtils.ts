@@ -33,6 +33,7 @@ export const getWeatherCondition = (code: number, isDay: number = 1): string => 
 
 export interface WeatherData {
   locationName?: string;
+  locationState?: string;
   current: {
     temp: number;
     condition: string;
@@ -54,7 +55,12 @@ export interface WeatherData {
   }[];
 }
 
-export const processWeatherData = (city: string, result: any, now: Date = new Date()): WeatherData => {
+export const processWeatherData = (
+  city: string,
+  result: any,
+  now: Date = new Date(),
+  locationState: string = ''
+): WeatherData => {
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
@@ -110,6 +116,7 @@ export const processWeatherData = (city: string, result: any, now: Date = new Da
 
   return {
     locationName: city,
+    locationState: locationState || '',
     current: currentData,
     forecast: standardForecast
   };

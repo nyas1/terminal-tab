@@ -1,89 +1,115 @@
-# Integrations Setup
+# Integrations Setup (Extension)
 
-This guide covers setup for:
+This guide is for the Firefox extension build.
 
-- Spotify Now Playing widget
-- GitHub Issues & PRs widget
-- AniList widget
+## Shared: Integration API Base URL (Spotify + GitHub)
+
+In the extension, Spotify and GitHub call your deployed API origin.
+
+- Open **Settings -> Advanced -> Integration API -> Base URL**
+- Set to your deployed origin (no trailing slash), for example:
+  - `https://<your-project>.vercel.app`
 
 ## Spotify Now Playing
 
-Widget endpoint: `/api/spotify-now-playing` (`api/spotify-now-playing.js` on Vercel: `https://<your-project>.vercel.app/api/spotify-now-playing`).
+Server endpoint used by extension: `/api/spotify-now-playing` (`api/spotify-now-playing.js`).
 
-Get a Spotify refresh token, then set three Vercel env vars.
+### 1) Create Spotify app
 
-### 1. Create a Spotify app
-
-- Open the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
-- Click **Create app** and note **Client ID** and **Client Secret**.
-- Set **Redirect URI** to: `http://127.0.0.1:5555/callback`
-
-### 2. Get an authorization `code`
-
-- Replace `YOUR_CLIENT_ID` in this URL and open it in a browser:
-
-  ```
-  https://accounts.spotify.com/authorize?response_type=code&client_id=YOUR_CLIENT_ID&scope=user-read-currently-playing%20user-read-recently-played&redirect_uri=http%3A%2F%2F127.0.0.1%3A5555%2Fcallback
-  ```
-
-- Log in and approve.
-- From `http://127.0.0.1:5555/callback?code=...`, copy the `code` query value before it expires.
-
-### 3. Exchange `code` for a `refresh_token`
-
-- Replace placeholders (`redirect_uri` must exactly match step 1):
-
-  ```bash
-  curl -s -X POST "https://accounts.spotify.com/api/token" \
-    -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "grant_type=authorization_code" \
-    -d "code=PASTE_CODE_HERE" \
-    -d "redirect_uri=http://127.0.0.1:5555/callback" \
-    -d "client_id=YOUR_CLIENT_ID" \
-    -d "client_secret=YOUR_CLIENT_SECRET"
-  ```
-
-- Copy `refresh_token` from the JSON response.
-
-### 4. Add secrets on Vercel
-
-- In your Vercel project: **Settings** -> **Environment Variables**
-- Add:
+- Open [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+- Create app and copy:
   - `SPOTIFY_CLIENT_ID`
   - `SPOTIFY_CLIENT_SECRET`
-  - `SPOTIFY_REFRESH_TOKEN`
-- Save and redeploy.
+- Add redirect URI: `http://127.0.0.1:5555/callback`
 
-### 5. Configure in Terminal Tab
+### 2) Get auth code
 
-- Enable **Spotify** widget.
-- Open **Settings -> Advanced**.
-- Under **Integration API**, set **Base URL** to `https://<your-project>.vercel.app` (no trailing slash) when needed (extension / cross-origin host).
+Open in browser (replace `YOUR_CLIENT_ID`):
+
+```text
+https://accounts.spotify.com/authorize?response_type=code&client_id=YOUR_CLIENT_ID&scope=user-read-currently-playing%20user-read-recently-played&redirect_uri=http%3A%2F%2F127.0.0.1%3A5555%2Fcallback
+```
+
+After approval, copy `code` from:
+
+- `http://127.0.0.1:5555/callback?code=...`
+
+### 3) Exchange code for refresh token
+
+Run this in **PowerShell**:
+
+```powershell
+$body = @{
+  grant_type    = 'authorization_code'
+  code          = 'PASTE_CODE_HERE'
+  redirect_uri  = 'http://127.0.0.1:5555/callback'
+  client_id     = 'YOUR_CLIENT_ID'
+  client_secret = 'YOUR_CLIENT_SECRET'
+}
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri 'https://accounts.spotify.com/api/token' `
+  -ContentType 'application/x-www-form-urlencoded' `
+  -Body $body
+```
+
+Copy `refresh_token` from response.
+
+### 4) Add deploy env vars
+
+- `SPOTIFY_CLIENT_ID`
+- `SPOTIFY_CLIENT_SECRET`
+- `SPOTIFY_REFRESH_TOKEN`
+
+Redeploy.
+
+### 5) Extension settings
+
+- Enable **Spotify** widget
+- Ensure **Integration API -> Base URL** is set
 
 ## GitHub Issues & PRs
 
-Widget endpoint: `/api/github-work-items` (`api/github-work-items.js` on Vercel: `https://<your-project>.vercel.app/api/github-work-items`).
+Server endpoint used by extension: `/api/github-work-items` (`api/github-work-items.js`).
 
-### 1. Add token on Vercel
+### 1) Add deploy env var
 
-- In Vercel env vars, add:
-  - `GITHUB_TOKEN` (PAT with read access to repos/issues/PRs you want surfaced)
-- Redeploy.
+- `GITHUB_TOKEN` (PAT with read access to repos/issues/PRs you want shown)
 
-### 2. Configure in Terminal Tab
+Redeploy.
 
-- Enable **GitHub** widget.
-- Open **Settings -> Advanced**.
-- Under **Integration API**, set **Base URL** to your deployed origin (same value as Spotify if you use both).
-- In **GitHub Widget**, set **GitHub Username**.
+### 2) Extension settings
+
+- Enable **GitHub** widget
+- Ensure **Integration API -> Base URL** is set
+- In **GitHub Widget**, set **GitHub Username**
 
 ## AniList
 
-AniList is fetched directly from `https://graphql.anilist.co`.
+AniList is direct client-side (no server key needed).
 
-### 1. Configure in Terminal Tab
+- Enable **AniList** widget
+- Open **Settings -> Advanced -> AniList Widget**
+- Set **AniList Username**
 
-- Enable **AniList** widget.
-- Open **Settings -> Advanced -> AniList Widget**.
-- Set:
-  - **AniList Username**
+## Trakt
+
+Trakt is direct client-side in the extension.
+
+### 1) Create Trakt app
+
+- Open [Trakt API Apps](https://trakt.tv/oauth/applications)
+- Create app and copy:
+  - **Client ID**
+  - **Client Secret**
+
+### 2) Extension settings
+
+- Enable **Trakt** widget
+- Open **Settings -> Advanced -> Trakt Widget**
+- Paste **Trakt Client ID** and **Trakt Client Secret**
+- Set **TMDB API Key (for posters)** from [TMDB API Settings](https://www.themoviedb.org/settings/api) (required)
+- Click **[ CONNECT ]**, open activation URL, enter code
+
+Note: Trakt credentials are stored locally in extension storage.

@@ -185,6 +185,8 @@ interface SettingsAdvancedTabProps {
     onIntegrationApiBaseUrlChange: (url: string) => void;
     githubUsername: string;
     onGithubUsernameChange: (username: string) => void;
+    githubLimit: number;
+    onGithubLimitChange: (value: number) => void;
     anilistUsername: string;
     onAnilistUsernameChange: (username: string) => void;
     anilistShownLists: ('CURRENT' | 'COMPLETED' | 'PAUSED' | 'DROPPED' | 'PLANNING')[];
@@ -254,6 +256,8 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
     onIntegrationApiBaseUrlChange,
     githubUsername,
     onGithubUsernameChange,
+    githubLimit,
+    onGithubLimitChange,
     anilistUsername,
     onAnilistUsernameChange,
     anilistShownLists,
@@ -871,6 +875,22 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                                 className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans"
                                 value={githubUsername}
                                 onChange={(e) => onGithubUsernameChange(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[var(--color-muted)] text-xs">GitHub item limit (1-20)</span>
+                            <input
+                                type="number"
+                                min={1}
+                                max={20}
+                                step={1}
+                                className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans"
+                                value={Number.isFinite(githubLimit) ? githubLimit : 10}
+                                onChange={(e) => {
+                                    const n = Number.parseInt(e.target.value || '10', 10);
+                                    const clamped = Number.isFinite(n) ? Math.min(20, Math.max(1, n) ) : 10;
+                                    onGithubLimitChange(clamped);
+                                }}
                             />
                         </div>
                     </div>

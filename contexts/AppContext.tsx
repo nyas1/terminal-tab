@@ -124,6 +124,9 @@ interface AppContextType {
     /** GitHub username used to query assigned/authored issues and PRs. */
     githubUsername: string;
     setGithubUsername: (value: string) => void;
+    /** Max number of GitHub items to show (1-20). */
+    githubLimit: number;
+    setGithubLimit: (value: number) => void;
     /** AniList username used for currently watching anime. */
     anilistUsername: string;
     setAnilistUsername: (value: string) => void;
@@ -244,6 +247,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [spotifyPulse, setSpotifyPulse] = useStickyState<boolean>(true, 'tui-spotify-pulse');
     const [integrationApiBaseUrl, setIntegrationApiBaseUrl] = useStickyState<string>('', 'tui-integration-api-base-url');
     const [githubUsername, setGithubUsername] = useStickyState<string>('', 'tui-github-username');
+    const [githubLimit, setGithubLimit] = useStickyState<number>(10, 'tui-github-limit');
     const [anilistUsername, setAnilistUsername] = useStickyState<string>('', 'tui-anilist-username');
     const [anilistShownLists, setAnilistShownLists] = useStickyState<('CURRENT' | 'COMPLETED' | 'PAUSED' | 'DROPPED' | 'PLANNING')[]>(['CURRENT'], 'tui-anilist-shown-lists');
     const [anilistLinkTarget, setAnilistLinkTarget] = useStickyState<'anilist' | 'miruro'>('anilist', 'tui-anilist-link-target');
@@ -472,6 +476,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setSpotifyPulse(true);
         setIntegrationApiBaseUrl('');
         setGithubUsername('');
+        setGithubLimit(10);
         setAnilistUsername('');
         setAnilistShownLists(['CURRENT']);
         setAnilistLinkTarget('anilist');
@@ -589,6 +594,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 spotifyPulse,
                 integrationApiBaseUrl,
                 githubUsername,
+                githubLimit,
                 anilistUsername,
                 anilistShownLists,
                 anilistLinkTarget,
@@ -635,6 +641,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             if (legacy !== undefined) setIntegrationApiBaseUrl(legacy);
         }
         if (d.githubUsername !== undefined) setGithubUsername(d.githubUsername);
+        if (d.githubLimit !== undefined) setGithubLimit(Number(d.githubLimit) || 10);
         if (d.anilistUsername !== undefined) setAnilistUsername(d.anilistUsername);
         if (d.anilistShownLists !== undefined) setAnilistShownLists(d.anilistShownLists);
         if (d.anilistLinkTarget !== undefined) setAnilistLinkTarget(d.anilistLinkTarget);
@@ -679,6 +686,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         spotifyPulse, setSpotifyPulse,
         integrationApiBaseUrl, setIntegrationApiBaseUrl,
         githubUsername, setGithubUsername,
+        githubLimit, setGithubLimit,
         anilistUsername, setAnilistUsername,
         anilistShownLists, setAnilistShownLists,
         anilistLinkTarget, setAnilistLinkTarget,

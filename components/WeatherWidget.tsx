@@ -87,11 +87,16 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ mode = 'standard',
       <div ref={containerRef} className="h-full w-full select-none overflow-hidden bg-[var(--color-bg)] p-4">
         <div className="grid grid-cols-2 grid-rows-[auto_1fr_auto] gap-2 h-full w-full">
 
-          {/* Yellow Box: City Name */}
-          <div className="col-span-2 flex items-center justify-end">
+          {/* Yellow Box: Locality + State */}
+          <div className="col-span-2 flex flex-col items-end justify-center min-w-0">
             <span className="text-[var(--color-fg)] font-bold text-2xl tracking-tight truncate w-full text-right" title={data.locationName}>
               {data.locationName}
             </span>
+            {data.locationState && data.locationState !== data.locationName ? (
+              <span className="text-[var(--color-muted)] text-xs opacity-60 leading-none truncate w-full text-right mt-0.5" title={data.locationState}>
+                {data.locationState}
+              </span>
+            ) : null}
           </div>
 
           {/* Red Box: Main Icon AND Temp */}

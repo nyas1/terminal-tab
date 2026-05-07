@@ -12,6 +12,22 @@ import { getRelativeAge, getRecentProgressLabel } from '../utils/traktWidget/mod
 import { loadTraktWidgetSuccessState } from '../utils/traktWidget/service';
 import type { TraktListTab, TraktWidgetState } from '../utils/traktWidget/types';
 
+const TRAKT_WIDGET_LOGO_SRC = '/images/trakt-widget.png';
+const TRAKT_WIDGET_LOGO_MASK_STYLE: React.CSSProperties = {
+  width: '7.8rem',
+  height: '7.8rem',
+  backgroundColor: 'var(--color-accent)',
+  WebkitMaskImage: `url(${TRAKT_WIDGET_LOGO_SRC})`,
+  maskImage: `url(${TRAKT_WIDGET_LOGO_SRC})`,
+  WebkitMaskRepeat: 'no-repeat',
+  maskRepeat: 'no-repeat',
+  WebkitMaskPosition: 'center',
+  maskPosition: 'center',
+  WebkitMaskSize: 'contain',
+  maskSize: 'contain',
+  maskMode: 'luminance'
+};
+
 export const TraktWidget: React.FC = () => {
   const { tmdbApiKey, traktClientId, traktClientSecret } = useAppContext();
   const [state, setState] = useState<TraktWidgetState>({
@@ -126,7 +142,10 @@ export const TraktWidget: React.FC = () => {
     if (state.status === 'error') {
       return (
         <div className="space-y-2">
-          <p className="text-xs leading-snug text-[var(--color-muted,#888888)]">{state.message}</p>
+          <div className="flex flex-col items-center gap-2 py-1 text-center">
+            <div aria-hidden className="shrink-0 opacity-90" style={TRAKT_WIDGET_LOGO_MASK_STYLE} />
+            <p className="text-xs leading-snug text-[var(--color-muted,#888888)]">{state.message}</p>
+          </div>
           <div className="flex justify-end">
             <button type="button" onClick={requestRefresh} className={TRAKT_REFRESH_BTN_CLASS} aria-label="Refresh" title="Refresh">
               ↻
@@ -136,7 +155,12 @@ export const TraktWidget: React.FC = () => {
       );
     }
     if (state.status === 'idle') {
-      return <p className="text-xs leading-snug text-[var(--color-muted,#888888)]">{state.message}</p>;
+      return (
+        <div className="flex flex-col items-center gap-2 py-1 text-center">
+          <div aria-hidden className="shrink-0 opacity-90" style={TRAKT_WIDGET_LOGO_MASK_STYLE} />
+          <p className="text-xs leading-snug text-[var(--color-muted,#888888)]">{state.message}</p>
+        </div>
+      );
     }
     if (state.continueItems.length === 0 && !state.nowWatching && state.fallbackItems.length === 0) {
       return (

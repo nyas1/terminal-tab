@@ -17,51 +17,21 @@ import {
 } from '../utils/spotifyWidget/service';
 import type { SpotifyApiErrorBody, SpotifyNowPlaying, SpotifyWidgetState } from '../utils/spotifyWidget/types';
 
-/** Pixel Spotify mark — arc gaps from accent (replaces brand green). */
-const SpotifyLogoMark: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <svg
-    className={className}
-    viewBox="0 0 32 32"
-    xmlns="http://www.w3.org/2000/svg"
-    shapeRendering="crispEdges"
-    aria-hidden
-    focusable="false"
-    preserveAspectRatio="xMidYMid meet"
-  >
-    <g fill="var(--color-accent)">
-      <rect x="8" y="3" width="16" height="1" />
-      <rect x="6" y="4" width="20" height="1" />
-      <rect x="5" y="5" width="22" height="1" />
-      <rect x="4" y="6" width="24" height="1" />
-      <rect x="4" y="7" width="24" height="1" />
-      <rect x="3" y="8" width="26" height="1" />
-      <rect x="3" y="9" width="26" height="1" />
-      <rect x="3" y="10" width="26" height="1" />
-      <rect x="3" y="11" width="4" height="1" />
-      <rect x="25" y="11" width="4" height="1" />
-      <rect x="3" y="12" width="5" height="1" />
-      <rect x="24" y="12" width="5" height="1" />
-      <rect x="3" y="13" width="26" height="1" />
-      <rect x="3" y="14" width="26" height="1" />
-      <rect x="3" y="15" width="6" height="1" />
-      <rect x="23" y="15" width="6" height="1" />
-      <rect x="3" y="16" width="7" height="1" />
-      <rect x="22" y="16" width="7" height="1" />
-      <rect x="3" y="17" width="26" height="1" />
-      <rect x="3" y="18" width="26" height="1" />
-      <rect x="3" y="19" width="8" height="1" />
-      <rect x="21" y="19" width="8" height="1" />
-      <rect x="3" y="20" width="9" height="1" />
-      <rect x="20" y="20" width="9" height="1" />
-      <rect x="3" y="21" width="26" height="1" />
-      <rect x="4" y="22" width="24" height="1" />
-      <rect x="4" y="23" width="24" height="1" />
-      <rect x="5" y="24" width="22" height="1" />
-      <rect x="6" y="25" width="20" height="1" />
-      <rect x="8" y="26" width="16" height="1" />
-    </g>
-  </svg>
-);
+const SPOTIFY_WIDGET_LOGO_SRC = '/images/spotify-widget.png';
+const SPOTIFY_WIDGET_LOGO_MASK_STYLE: React.CSSProperties = {
+  width: '7.8rem',
+  height: '7.8rem',
+  backgroundColor: 'var(--color-accent)',
+  WebkitMaskImage: `url(${SPOTIFY_WIDGET_LOGO_SRC})`,
+  maskImage: `url(${SPOTIFY_WIDGET_LOGO_SRC})`,
+  WebkitMaskRepeat: 'no-repeat',
+  maskRepeat: 'no-repeat',
+  WebkitMaskPosition: 'center',
+  maskPosition: 'center',
+  WebkitMaskSize: 'contain',
+  maskSize: 'contain',
+  maskMode: 'luminance'
+};
 
 /**
  * Downscale cover to a tiny bitmap (nearest-neighbor); falls back to raw img if canvas is tainted.
@@ -209,7 +179,8 @@ export const SpotifyWidget: React.FC = () => {
   const content = useMemo(() => {
     if (state.status === 'loading') {
       return (
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-1">
+          <div aria-hidden className="mb-2 shrink-0 opacity-90" style={SPOTIFY_WIDGET_LOGO_MASK_STYLE} />
           <span className="text-xs text-[var(--color-muted,#888888)]">loading…</span>
         </div>
       );
@@ -217,7 +188,8 @@ export const SpotifyWidget: React.FC = () => {
 
     if (state.status === 'error') {
       return (
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-1">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-1 py-1">
+          <div aria-hidden className="mb-2 shrink-0 opacity-90" style={SPOTIFY_WIDGET_LOGO_MASK_STYLE} />
           <span className="text-center text-xs leading-snug text-[var(--color-muted,#888888)]">{state.message}</span>
         </div>
       );
@@ -228,7 +200,7 @@ export const SpotifyWidget: React.FC = () => {
     const showNowPlaying = data.isPlaying && hasTrack;
 
     return (
-      <div className="flex min-h-0 flex-1 flex-col gap-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 py-1">
         <div className={SPOTIFY_ART_AREA}>
           {showNowPlaying ? (
             data.albumImageUrl ? (
@@ -253,7 +225,7 @@ export const SpotifyWidget: React.FC = () => {
               <span className="text-[10px] text-[var(--color-muted,#888888)]">no art</span>
             )
           ) : (
-            <SpotifyLogoMark className="h-full max-h-full w-[min(72%,9.5rem)] shrink-0" />
+            <div aria-hidden className="shrink-0 opacity-90" style={SPOTIFY_WIDGET_LOGO_MASK_STYLE} />
           )}
         </div>
         <div className="w-full shrink-0 text-center">
@@ -275,7 +247,7 @@ export const SpotifyWidget: React.FC = () => {
   }, [state, spotifyPixelAlbumArt, spotifyPulse]);
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
+    <div className="flex h-full min-h-0 w-full flex-col overflow-auto pr-1 custom-scrollbar">
       {content}
     </div>
   );

@@ -27,3 +27,6 @@ dist-ssr
 # Packaged extension / source archive (build locally)
 *.xpi
 *.zip
+
+# Agent instructions (local only)
+AGENTS.md

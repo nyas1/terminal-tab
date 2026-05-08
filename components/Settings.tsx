@@ -268,6 +268,8 @@ export const Settings: React.FC = () => {
                                     linkGroups={linkGroups}
                                     onUpdateLinks={setLinkGroups}
                                     onRefetchFavicons={requestFaviconRefresh}
+                                    showFavicons={showFavicons}
+                                    setShowFavicons={setShowFavicons}
                                 />
                             )}
 

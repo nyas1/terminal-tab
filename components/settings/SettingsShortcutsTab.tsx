@@ -6,12 +6,16 @@ interface SettingsShortcutsTabProps {
     linkGroups: LinkGroup[];
     onUpdateLinks: (groups: LinkGroup[]) => void;
     onRefetchFavicons: () => void;
+    showFavicons: boolean;
+    setShowFavicons: (show: boolean) => void;
 }
 
 export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
     linkGroups,
     onUpdateLinks,
     onRefetchFavicons,
+    showFavicons,
+    setShowFavicons,
 }) => {
     const [newCatName, setNewCatName] = useState('');
     const [newLinkInputs, setNewLinkInputs] = useState<Record<string, { label: string, url: string, favicon: string }>>({});
@@ -116,20 +120,30 @@ export const SettingsShortcutsTab: React.FC<SettingsShortcutsTabProps> = ({
     return (
         <div className="space-y-6">
             <div className="border border-[var(--color-border)] p-4">
-                <h3 className="text-[var(--color-accent)] font-bold mb-2">Favicon Cache</h3>
-                <p className="text-[var(--color-muted)] text-xs mb-3">
-                    Clear cached link icons and fetch fresh ones on next render.
-                </p>
-                <button
-                    type="button"
-                    onClick={() => {
-                        clearFaviconCache();
-                        onRefetchFavicons();
-                    }}
-                    className="border border-[var(--color-border)] px-2 py-1 text-xs font-mono text-[var(--color-fg)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] no-radius"
-                >
-                    [ REFETCH FAVICONS ]
-                </button>
+                <h3 className="text-[var(--color-accent)] font-bold mb-3">favicons settings</h3>
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setShowFavicons(!showFavicons)}
+                        className={`border px-2 py-1 text-xs font-mono no-radius transition-colors ${
+                            showFavicons
+                                ? 'border-[var(--color-accent)] text-[var(--color-accent)]'
+                                : 'border-[var(--color-border)] text-[var(--color-fg)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]'
+                        }`}
+                    >
+                        [ {showFavicons ? 'DISABLE' : 'ENABLE'} FAVICONS ]
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            clearFaviconCache();
+                            onRefetchFavicons();
+                        }}
+                        className="border border-[var(--color-border)] px-2 py-1 text-xs font-mono text-[var(--color-fg)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] no-radius"
+                    >
+                        [ REFETCH FAVICONS ]
+                    </button>
+                </div>
             </div>
 
             {linkGroups.map((group, groupIdx) => (

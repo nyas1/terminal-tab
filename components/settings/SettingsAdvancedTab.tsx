@@ -1452,7 +1452,7 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
             </div>
 
             <div className="text-[10px] text-[var(--color-muted)] mt-6 text-center opacity-50 font-mono">
-                Terminal Tab v2.0.4
+                Terminal Tab v2.0.5
             </div>
         </div>
     );

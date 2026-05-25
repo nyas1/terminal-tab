@@ -35,6 +35,69 @@ const IntegrationsSetupLinkHint: React.FC = () => (
     </span>
 );
 
+const getInitialHideTooltips = (): boolean => {
+    try {
+        const stored = localStorage.getItem('tui-hide-tooltips');
+        if (stored !== null) return stored === 'true' || stored === '"true"' || stored === '1';
+        return localStorage.getItem('tui-hide-settings-tip') === '1';
+    } catch {
+        return false;
+    }
+};
+
+const TooltipVisibilityToggle: React.FC = () => {
+    const [hideTooltips, setHideTooltips] = useState<boolean>(getInitialHideTooltips());
+
+    // Listen to local storage changes to keep UI synced if hidden from footer tip while Settings open
+    useEffect(() => {
+        const onStorage = () => setHideTooltips(getInitialHideTooltips());
+        window.addEventListener('storage', onStorage);
+        // Also fire once on mount to catch any changes made before modal opened
+        onStorage();
+        return () => window.removeEventListener('storage', onStorage);
+    }, []);
+
+    useEffect(() => {
+        try {
+            if (hideTooltips) {
+                localStorage.setItem('tui-hide-settings-tip', '1');
+                localStorage.setItem('tui-hide-tooltips', 'true');
+            } else {
+                localStorage.removeItem('tui-hide-settings-tip');
+                localStorage.setItem('tui-hide-tooltips', 'false');
+            }
+            const tip = document.getElementById('tt-settings-tip');
+            if (tip) tip.style.display = hideTooltips ? 'none' : 'flex';
+        } catch (e) {
+            // noop
+        }
+    }, [hideTooltips]);
+
+    return (
+        <div className="mt-2">
+            <span className="text-[var(--color-muted)] text-xs">Tooltips</span>
+            <div className="flex flex-row flex-wrap gap-3 mt-1">
+                <button
+                    type="button"
+                    onClick={() => setHideTooltips(true)}
+                    className="flex items-center gap-2 cursor-pointer select-none group"
+                >
+                    <span className="font-mono text-[var(--color-accent)] font-bold">{hideTooltips ? '[x]' : '[ ]'}</span>
+                    <span className="text-[var(--color-fg)] text-sm group-hover:text-[var(--color-fg)]">Hide tooltips</span>
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setHideTooltips(false)}
+                    className="flex items-center gap-2 cursor-pointer select-none group"
+                >
+                    <span className="font-mono text-[var(--color-accent)] font-bold">{hideTooltips ? '[ ]' : '[x]'}</span>
+                    <span className="text-[var(--color-fg)] text-sm group-hover:text-[var(--color-fg)]">Unhide tooltips</span>
+                </button>
+            </div>
+        </div>
+    );
+};
+
 const INTEGRATION_API_REQUIRED_HINT = 'Integration API required.';
 const isTransientTraktStatus = (status: number): boolean =>
     status === 429 || status === 502 || status === 503 || status === 504;
@@ -546,6 +609,9 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                         </span>
                         <span className="text-[var(--color-fg)] text-sm group-hover:text-[var(--color-fg)]">Reserve Settings Space</span>
                     </div>
+
+                    {/* Tooltip visibility toggle (persisted) */}
+                    <TooltipVisibilityToggle />
 
                     <div className="flex flex-col gap-1 mt-2">
                         <span className="text-[var(--color-muted)] text-xs">Custom Font Family</span>

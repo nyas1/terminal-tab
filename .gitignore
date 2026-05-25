@@ -44,3 +44,5 @@ dist-ssr
 
 # Agent instructions (local only)
 AGENTS.md
+.agents/
+skills-lock.json

@@ -32,6 +32,7 @@
   - 📺 AniList
   - 🍿 Trakt
 - Theme customization, custom CSS, custom tab title/favicon, and presets
+- ⚠️ To access settings: hover over the top-right corner.
 
 ## Integrations Setup
 

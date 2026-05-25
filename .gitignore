@@ -1,3 +1,17 @@
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+
+# Firefox addon built assets - ignore hashed bundles and copied images
+/firefox_addon/assets/index-*.js
+/firefox_addon/assets/index-*.css
+/firefox_addon/assets/*.map
+/firefox_addon/images/
+
+# Packaged artifacts
+*.xpi
 # Logs
 logs
 *.log

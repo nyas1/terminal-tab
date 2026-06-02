@@ -139,7 +139,8 @@ export const TraktWidget: React.FC = () => {
   const content = useMemo(() => {
     if (state.status === 'loading') {
       return (
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col items-center gap-2 py-1 text-center">
+          <div aria-hidden className="shrink-0 opacity-90" style={TRAKT_WIDGET_LOGO_MASK_STYLE} />
           <p className="text-xs text-[var(--color-muted,#888888)]">loading...</p>
           <button type="button" disabled className={TRAKT_REFRESH_BTN_CLASS} aria-label="Refresh" title="Refresh">
             ↻

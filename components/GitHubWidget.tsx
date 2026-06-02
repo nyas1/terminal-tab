@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { GitPullRequestIcon, IssueOpenedIcon } from '@primer/octicons-react';
 import { useAppContext } from '../contexts/AppContext';
-import { GITHUB_WIDGET_LIMIT_DEFAULT, GITHUB_WIDGET_LIMIT_MAX, GITHUB_WIDGET_POLL_MS } from '../utils/githubWidget/constants';
+import { GITHUB_REFRESH_BTN_CLASS, GITHUB_WIDGET_LIMIT_DEFAULT, GITHUB_WIDGET_LIMIT_MAX, GITHUB_WIDGET_POLL_MS } from '../utils/githubWidget/constants';
 import { getRelativeAge } from '../utils/githubWidget/model';
 import { fetchGithubWorkItems } from '../utils/githubWidget/service';
 import type { GitHubItemFilter, GitHubWidgetState } from '../utils/githubWidget/types';
@@ -28,6 +28,11 @@ export const GitHubWidget: React.FC = () => {
   const { githubUsername, githubLimit, integrationApiBaseUrl } = useAppContext();
   const [state, setState] = useState<GitHubWidgetState>({ status: 'loading' });
   const [filter, setFilter] = useState<GitHubItemFilter>('all');
+  const [manualRefresh, setManualRefresh] = useState(0);
+
+  const requestRefresh = React.useCallback(() => {
+    setManualRefresh((n) => n + 1);
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -65,7 +70,7 @@ export const GitHubWidget: React.FC = () => {
       alive = false;
       window.clearInterval(timer);
     };
-  }, [integrationApiBaseUrl, githubLimit, githubUsername]);
+  }, [integrationApiBaseUrl, githubLimit, githubUsername, manualRefresh]);
 
   const content = useMemo(() => {
     if (state.status === 'loading') {
@@ -73,24 +78,41 @@ export const GitHubWidget: React.FC = () => {
         <div className="flex flex-col items-center gap-2 py-1 text-center">
           <div aria-hidden className="shrink-0 opacity-90" style={GITHUB_WIDGET_LOGO_MASK_STYLE} />
           <p className="text-xs text-[var(--color-muted,#888888)]">loading...</p>
+          <button type="button" disabled className={GITHUB_REFRESH_BTN_CLASS} aria-label="Refresh" title="Refresh">
+            ↻
+          </button>
         </div>
       );
     }
 
     if (state.status === 'error') {
       return (
-        <div className="flex flex-col items-center gap-2 py-1 text-center">
-          <div aria-hidden className="shrink-0 opacity-90" style={GITHUB_WIDGET_LOGO_MASK_STYLE} />
-          <p className="text-xs leading-snug text-[var(--color-muted,#888888)]">{state.message}</p>
+        <div className="space-y-2">
+          <div className="flex flex-col items-center gap-2 py-1 text-center">
+            <div aria-hidden className="shrink-0 opacity-90" style={GITHUB_WIDGET_LOGO_MASK_STYLE} />
+            <p className="text-xs leading-snug text-[var(--color-muted,#888888)]">{state.message}</p>
+          </div>
+          <div className="flex justify-end">
+            <button type="button" onClick={requestRefresh} className={GITHUB_REFRESH_BTN_CLASS} aria-label="Refresh" title="Refresh">
+              ↻
+            </button>
+          </div>
         </div>
       );
     }
 
     if (state.items.length === 0) {
       return (
-        <div className="flex flex-col items-center gap-2 py-1 text-center">
-          <div aria-hidden className="shrink-0 opacity-90" style={GITHUB_WIDGET_LOGO_MASK_STYLE} />
-          <p className="text-xs text-[var(--color-muted,#888888)]">No open issues or PRs found for this account.</p>
+        <div className="space-y-2">
+          <div className="flex flex-col items-center gap-2 py-1 text-center">
+            <div aria-hidden className="shrink-0 opacity-90" style={GITHUB_WIDGET_LOGO_MASK_STYLE} />
+            <p className="text-xs text-[var(--color-muted,#888888)]">No open issues or PRs found for this account.</p>
+          </div>
+          <div className="flex justify-end">
+            <button type="button" onClick={requestRefresh} className={GITHUB_REFRESH_BTN_CLASS} aria-label="Refresh" title="Refresh">
+              ↻
+            </button>
+          </div>
         </div>
       );
     }
@@ -114,6 +136,9 @@ export const GitHubWidget: React.FC = () => {
               [{option === 'all' ? 'ALL' : option === 'issue' ? 'ISSUES' : 'PRS'}]
             </button>
           ))}
+          <button type="button" onClick={requestRefresh} className={`${GITHUB_REFRESH_BTN_CLASS} ml-auto`} aria-label="Refresh" title="Refresh">
+            ↻
+          </button>
         </div>
 
         {filteredItems.length === 0 ? (
@@ -152,7 +177,7 @@ export const GitHubWidget: React.FC = () => {
         )}
       </div>
     );
-  }, [filter, state]);
+  }, [filter, requestRefresh, state]);
 
   return <div className="h-full overflow-auto pr-1 custom-scrollbar">{content}</div>;
 };

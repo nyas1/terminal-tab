@@ -17,6 +17,10 @@
 </p>
 
 <p align="center">
+  <img src="https://shieldcn.dev/group/github/stars/nyas1/terminal-tab+github/forks/nyas1/terminal-tab+amo/users/terminal-newtab+amo/d/terminal-newtab.svg?mode=light" alt="Terminal Tab Stats">
+</p>
+
+<p align="center">
   <img src="docs/terminal-tab-preview.png" width="900" alt="Terminal Tab preview">
 </p>
 

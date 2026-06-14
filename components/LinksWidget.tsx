@@ -2,7 +2,7 @@ import React from 'react';
 import { LinkGroup } from '../types';
 import { sanitizeUrl } from '../utils/urlUtils';
 import { useAppContext } from '../contexts/AppContext';
-import { getCachedFaviconDataUrl, setCachedFaviconDataUrl } from '../utils/faviconCache';
+import { getFavicon, getLetterAvatar } from '../utils/faviconCache';
 
 interface LinksWidgetProps {
     groups: LinkGroup[];
@@ -35,23 +35,6 @@ const getHostname = (rawUrl: string): string | null => {
     }
 };
 
-const getFaviconCandidateUrls = (hostname: string): string[] => [
-    // Site-native icon first (often cacheable and stable).
-    `https://${hostname}/favicon.ico`,
-    // DDG endpoint is frequently CORS-friendly for fetch+cache.
-    `https://icons.duckduckgo.com/ip3/${encodeURIComponent(hostname)}.ico`,
-    // Keep previous provider as final fallback.
-    `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=32`
-];
-
-const blobToDataUrl = (blob: Blob): Promise<string> =>
-    new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result || ''));
-        reader.onerror = () => reject(new Error('reader-error'));
-        reader.readAsDataURL(blob);
-    });
-
 const getSafeOverrideFaviconUrl = (rawUrl?: string): string | null => {
     if (!rawUrl || !rawUrl.trim()) return null;
     const safeUrl = sanitizeUrl(rawUrl.trim());
@@ -59,28 +42,17 @@ const getSafeOverrideFaviconUrl = (rawUrl?: string): string | null => {
     return safeUrl;
 };
 
-const fetchFaviconDataUrl = async (urls: string[]): Promise<string | null> => {
-    for (const url of urls) {
-        try {
-            const res = await fetch(url, { mode: 'cors', cache: 'force-cache' });
-            if (!res.ok) continue;
-            const blob = await res.blob();
-            if (!blob || blob.size === 0 || blob.size > 120 * 1024) continue;
-            const dataUrl = await blobToDataUrl(blob);
-            if (dataUrl.startsWith('data:')) return dataUrl;
-        } catch {
-            // Try next candidate.
-        }
-    }
-    return null;
-};
-
 const ShortcutLink: React.FC<{ label: string; url: string; openInNewTab: boolean; linkIconMode: 'favicon' | 'arrow' | 'hide'; faviconOverride?: string; refreshNonce: number }> = ({ label, url, openInNewTab, linkIconMode, faviconOverride, refreshNonce }) => {
     const [iconHidden, setIconHidden] = React.useState(false);
-    const [resolvedFavicon, setResolvedFavicon] = React.useState<string | null>(null);
     const faviconUrl = getSafeOverrideFaviconUrl(faviconOverride) || getFaviconUrl(url);
     const hostname = getHostname(url);
     const usingOverride = Boolean(getSafeOverrideFaviconUrl(faviconOverride));
+
+    const [resolvedFavicon, setResolvedFavicon] = React.useState<string | null>(() => {
+        if (linkIconMode === 'hide' || linkIconMode === 'arrow' || !faviconUrl) return null;
+        if (usingOverride || !hostname) return faviconUrl;
+        return getLetterAvatar(hostname);
+    });
 
     React.useEffect(() => {
         setIconHidden(false);
@@ -102,20 +74,13 @@ const ShortcutLink: React.FC<{ label: string; url: string; openInNewTab: boolean
                 return;
             }
 
-            const cached = getCachedFaviconDataUrl(hostname);
-            if (cached) {
-                setResolvedFavicon(cached);
-                return;
-            }
-
-            setResolvedFavicon(faviconUrl);
             try {
-                const dataUrl = await fetchFaviconDataUrl(getFaviconCandidateUrls(hostname));
-                if (!dataUrl) return;
-                setCachedFaviconDataUrl(hostname, dataUrl);
-                if (!cancelled) setResolvedFavicon(dataUrl);
+                const cached = await getFavicon(hostname);
+                if (cached && !cancelled) {
+                    setResolvedFavicon(cached);
+                }
             } catch {
-                // Keep fallback URL image.
+                // Keep the letter avatar on error
             }
         };
         void run();
@@ -140,7 +105,14 @@ const ShortcutLink: React.FC<{ label: string; url: string; openInNewTab: boolean
                         width={14}
                         height={14}
                         className="inline-block opacity-80"
-                        onError={() => setIconHidden(true)}
+                        onError={() => {
+                            const avatar = hostname ? getLetterAvatar(hostname) : null;
+                            if (resolvedFavicon !== avatar && avatar) {
+                                setResolvedFavicon(avatar);
+                            } else {
+                                setIconHidden(true);
+                            }
+                        }}
                     />
                 ) : linkIconMode === 'hide' ? null : (
                     <span className="inline-block w-[14px] text-center opacity-50">&gt;</span>

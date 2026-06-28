@@ -19,7 +19,7 @@ import { FireworksWidget } from './components/FireworksWidget';
 import { StarfieldWidget } from './components/StarfieldWidget';
 import { RainWidget } from './components/RainWidget';
 import { MazeWidget } from './components/MazeWidget';
-import { SpotifyWidget } from './components/SpotifyWidget';
+import { NowPlayingWidget } from './components/NowPlayingWidget';
 import { GitHubWidget } from './components/GitHubWidget';
 import { AnilistWidget } from './components/AnilistWidget';
 import { TraktWidget } from './components/TraktWidget';
@@ -176,7 +176,7 @@ function AppContent() {
               case 'maze':
                 return <TuiBox {...boxProps}><MazeWidget speed={funOptions.maze.speed} /></TuiBox>;
               case 'spotify':
-                return <TuiBox {...boxProps} title="spotify"><SpotifyWidget /></TuiBox>;
+                return <TuiBox {...boxProps} title="now-playing"><NowPlayingWidget /></TuiBox>;
               case 'github':
                 return <TuiBox {...boxProps} title="github"><GitHubWidget /></TuiBox>;
               case 'anilist':

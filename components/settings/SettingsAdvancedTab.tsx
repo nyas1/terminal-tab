@@ -247,6 +247,12 @@ interface SettingsAdvancedTabProps {
     onToggleSpotifyPixelAlbumArt: () => void;
     spotifyPulse: boolean;
     onToggleSpotifyPulse: () => void;
+    nowPlayingProvider: 'spotify' | 'lastfm';
+    onNowPlayingProviderChange: (value: 'spotify' | 'lastfm') => void;
+    lastfmUsername: string;
+    onLastfmUsernameChange: (username: string) => void;
+    lastfmApiKey: string;
+    onLastfmApiKeyChange: (apiKey: string) => void;
     integrationApiBaseUrl: string;
     onIntegrationApiBaseUrlChange: (url: string) => void;
     githubUsername: string;
@@ -319,6 +325,12 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
     onToggleSpotifyPixelAlbumArt,
     spotifyPulse,
     onToggleSpotifyPulse,
+    nowPlayingProvider,
+    onNowPlayingProviderChange,
+    lastfmUsername,
+    onLastfmUsernameChange,
+    lastfmApiKey,
+    onLastfmApiKeyChange,
     integrationApiBaseUrl,
     onIntegrationApiBaseUrlChange,
     githubUsername,
@@ -936,7 +948,7 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
                 </div>
             </div>
 
-            {(Boolean(activeWidgets.spotify) || Boolean(activeWidgets.github)) && (
+            {(Boolean(activeWidgets.spotify && nowPlayingProvider === 'spotify') || Boolean(activeWidgets.github)) && (
                 <div className="border border-[var(--color-border)] p-4">
                     <h3 className="text-[var(--color-accent)] font-bold mb-2">Integration API</h3>
                     <div className="flex flex-col gap-1">
@@ -957,32 +969,82 @@ export const SettingsAdvancedTab: React.FC<SettingsAdvancedTabProps> = ({
 
             {activeWidgets.spotify && (
                 <div className="border border-[var(--color-border)] p-4">
-                    <h3 className="text-[var(--color-accent)] font-bold mb-2">Spotify Widget</h3>
-                    {!integrationApiBaseUrl.trim() ? (
-                        <p className="text-[10px] font-mono text-[var(--color-muted)] mb-2">{INTEGRATION_API_REQUIRED_HINT}</p>
-                    ) : null}
-                    <div className="flex flex-col gap-3">
-                        <div
-                            onClick={onToggleSpotifyPixelAlbumArt}
-                            className="flex items-center gap-2 cursor-pointer select-none group"
-                        >
-                            <span className="font-mono text-[var(--color-accent)] font-bold">
-                                {spotifyPixelAlbumArt ? '[x]' : '[ ]'}
-                            </span>
-                            <span className="text-[var(--color-fg)] text-sm group-hover:text-[var(--color-fg)]">
-                                Pixel album art
-                            </span>
+                    <h3 className="text-[var(--color-accent)] font-bold mb-2">Now-Playing Widget</h3>
+                    
+                    <div className="flex flex-col gap-4">
+                        {/* Implementation Selector */}
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[var(--color-muted)] text-xs">Implementation</span>
+                            <select
+                                className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full font-sans cursor-pointer"
+                                value={nowPlayingProvider}
+                                onChange={(e) => onNowPlayingProviderChange(e.target.value as 'spotify' | 'lastfm')}
+                            >
+                                <option value="spotify">Spotify API</option>
+                                <option value="lastfm">Last.fm API</option>
+                            </select>
                         </div>
-                        <div
-                            onClick={onToggleSpotifyPulse}
-                            className="flex items-center gap-2 cursor-pointer select-none group"
-                        >
-                            <span className="font-mono text-[var(--color-accent)] font-bold">
-                                {spotifyPulse ? '[x]' : '[ ]'}
-                            </span>
-                            <span className="text-[var(--color-fg)] text-sm group-hover:text-[var(--color-fg)]">
-                                EQ Animation
-                            </span>
+
+                        {nowPlayingProvider === 'spotify' ? (
+                            <>
+                                {!integrationApiBaseUrl.trim() ? (
+                                    <p className="text-[10px] font-mono text-[var(--color-muted)] mb-1">{INTEGRATION_API_REQUIRED_HINT}</p>
+                                ) : null}
+                            </>
+                        ) : (
+                            <div className="flex flex-col gap-3">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[var(--color-muted)] text-xs">Last.fm Username</span>
+                                    <input
+                                        type="text"
+                                        autoComplete="off"
+                                        placeholder="e.g. RJ"
+                                        className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans"
+                                        value={lastfmUsername}
+                                        onChange={(e) => onLastfmUsernameChange(e.target.value)}
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[var(--color-muted)] text-xs">Last.fm API Key</span>
+                                    <input
+                                        type="password"
+                                        autoComplete="off"
+                                        placeholder="e.g. 2d3e4f..."
+                                        className="bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-fg)] px-2 py-1 text-sm focus:border-[var(--color-accent)] outline-none w-full select-text font-sans"
+                                        value={lastfmApiKey}
+                                        onChange={(e) => onLastfmApiKeyChange(e.target.value)}
+                                    />
+                                    <span className="text-[10px] text-[var(--color-muted)] font-mono">
+                                        Get a free API key at <a href="https://www.last.fm/api" target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent)] hover:underline">last.fm/api</a>
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Visual details common to both Spotify and Last.fm */}
+                        <div className="flex flex-col gap-3 pt-3 border-t border-[var(--color-border)] border-dashed">
+                            <div
+                                onClick={onToggleSpotifyPixelAlbumArt}
+                                className="flex items-center gap-2 cursor-pointer select-none group"
+                            >
+                                <span className="font-mono text-[var(--color-accent)] font-bold">
+                                    {spotifyPixelAlbumArt ? '[x]' : '[ ]'}
+                                </span>
+                                <span className="text-[var(--color-fg)] text-sm group-hover:text-[var(--color-fg)]">
+                                    Pixel album art
+                                </span>
+                            </div>
+                            <div
+                                onClick={onToggleSpotifyPulse}
+                                className="flex items-center gap-2 cursor-pointer select-none group"
+                            >
+                                <span className="font-mono text-[var(--color-accent)] font-bold">
+                                    {spotifyPulse ? '[x]' : '[ ]'}
+                                </span>
+                                <span className="text-[var(--color-fg)] text-sm group-hover:text-[var(--color-fg)]">
+                                    EQ Animation
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>

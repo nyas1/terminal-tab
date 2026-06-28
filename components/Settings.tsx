@@ -28,6 +28,9 @@ export const Settings: React.FC = () => {
         activeWidgets, toggleWidget, addExtraWidget,
         spotifyPixelAlbumArt, setSpotifyPixelAlbumArt,
         spotifyPulse, setSpotifyPulse,
+        nowPlayingProvider, setNowPlayingProvider,
+        lastfmUsername, setLastfmUsername,
+        lastfmApiKey, setLastfmApiKey,
         integrationApiBaseUrl, setIntegrationApiBaseUrl,
         githubUsername, setGithubUsername,
         githubLimit, setGithubLimit,
@@ -336,6 +339,12 @@ export const Settings: React.FC = () => {
                                     onToggleSpotifyPixelAlbumArt={() => setSpotifyPixelAlbumArt(!spotifyPixelAlbumArt)}
                                     spotifyPulse={spotifyPulse}
                                     onToggleSpotifyPulse={() => setSpotifyPulse(!spotifyPulse)}
+                                    nowPlayingProvider={nowPlayingProvider}
+                                    onNowPlayingProviderChange={setNowPlayingProvider}
+                                    lastfmUsername={lastfmUsername}
+                                    onLastfmUsernameChange={setLastfmUsername}
+                                    lastfmApiKey={lastfmApiKey}
+                                    onLastfmApiKeyChange={setLastfmApiKey}
                                     integrationApiBaseUrl={integrationApiBaseUrl}
                                     onIntegrationApiBaseUrlChange={setIntegrationApiBaseUrl}
                                     githubUsername={githubUsername}

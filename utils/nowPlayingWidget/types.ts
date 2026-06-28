@@ -1,6 +1,6 @@
-/** Spotify now-playing widget (integration API). */
+/** Now playing track state and widget types. */
 
-export type SpotifyNowPlaying = {
+export type NowPlayingTrackState = {
   isPlaying: boolean;
   title: string;
   artist: string;
@@ -16,7 +16,7 @@ export type SpotifyApiErrorBody = {
   stage?: string;
 };
 
-export type SpotifyWidgetState =
+export type NowPlayingWidgetState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'success'; data: SpotifyNowPlaying };
+  | { status: 'success'; data: NowPlayingTrackState };

@@ -118,6 +118,15 @@ interface AppContextType {
     /** When true, Spotify shows animated EQ bars; when false, the bar strip is hidden. */
     spotifyPulse: boolean;
     setSpotifyPulse: (value: boolean) => void;
+    /** Selected now playing API provider: spotify or lastfm. */
+    nowPlayingProvider: 'spotify' | 'lastfm';
+    setNowPlayingProvider: (value: 'spotify' | 'lastfm') => void;
+    /** Last.fm username. */
+    lastfmUsername: string;
+    setLastfmUsername: (value: string) => void;
+    /** Last.fm API Key. */
+    lastfmApiKey: string;
+    setLastfmApiKey: (value: string) => void;
     /**
      * Optional https origin for hosted /api routes (Spotify, GitHub widgets). Empty = same-origin /api.
      */
@@ -253,6 +262,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const [spotifyPixelAlbumArt, setSpotifyPixelAlbumArt] = useStickyState<boolean>(true, 'tui-spotify-pixel-album-art');
     const [spotifyPulse, setSpotifyPulse] = useStickyState<boolean>(true, 'tui-spotify-pulse');
+    const [nowPlayingProvider, setNowPlayingProvider] = useStickyState<'spotify' | 'lastfm'>('spotify', 'tui-now-playing-provider');
+    const [lastfmUsername, setLastfmUsername] = useStickyState<string>('', 'tui-lastfm-username');
+    const [lastfmApiKey, setLastfmApiKey] = useStickyState<string>('', 'tui-lastfm-api-key');
     const [integrationApiBaseUrl, setIntegrationApiBaseUrl] = useStickyState<string>('', 'tui-integration-api-base-url');
     const [githubUsername, setGithubUsername] = useStickyState<string>('', 'tui-github-username');
     const [githubLimit, setGithubLimit] = useStickyState<number>(10, 'tui-github-limit');
@@ -483,6 +495,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setSearchSlashHotkeyEnabled(true);
         setSpotifyPixelAlbumArt(true);
         setSpotifyPulse(true);
+        setNowPlayingProvider('spotify');
+        setLastfmUsername('');
+        setLastfmApiKey('');
         setIntegrationApiBaseUrl('');
         setGithubUsername('');
         setGithubLimit(10);
@@ -605,6 +620,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 searchSlashHotkeyEnabled,
                 spotifyPixelAlbumArt,
                 spotifyPulse,
+                nowPlayingProvider,
+                lastfmUsername,
+                lastfmApiKey,
                 integrationApiBaseUrl,
                 githubUsername,
                 githubLimit,
@@ -647,8 +665,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (d.searchDefaultEngine) setSearchDefaultEngine(d.searchDefaultEngine);
         if (d.searchEnabledEngines) setSearchEnabledEngines(d.searchEnabledEngines);
         if (d.searchSlashHotkeyEnabled !== undefined) setSearchSlashHotkeyEnabled(d.searchSlashHotkeyEnabled);
-        if (d.spotifyPixelAlbumArt !== undefined) setSpotifyPixelAlbumArt(d.spotifyPixelAlbumArt);
+         if (d.spotifyPixelAlbumArt !== undefined) setSpotifyPixelAlbumArt(d.spotifyPixelAlbumArt);
         if (d.spotifyPulse !== undefined) setSpotifyPulse(d.spotifyPulse);
+        if (d.nowPlayingProvider !== undefined) setNowPlayingProvider(d.nowPlayingProvider);
+        if (d.lastfmUsername !== undefined) setLastfmUsername(d.lastfmUsername);
+        if (d.lastfmApiKey !== undefined) setLastfmApiKey(d.lastfmApiKey);
         if (d.integrationApiBaseUrl !== undefined) setIntegrationApiBaseUrl(d.integrationApiBaseUrl);
         else {
             const legacy = d.spotifyApiBaseUrl || d.githubApiBaseUrl;
@@ -700,6 +721,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         activeWidgets, setActiveWidgets,
         spotifyPixelAlbumArt, setSpotifyPixelAlbumArt,
         spotifyPulse, setSpotifyPulse,
+        nowPlayingProvider, setNowPlayingProvider,
+        lastfmUsername, setLastfmUsername,
+        lastfmApiKey, setLastfmApiKey,
         integrationApiBaseUrl, setIntegrationApiBaseUrl,
         githubUsername, setGithubUsername,
         githubLimit, setGithubLimit,

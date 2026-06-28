@@ -34,7 +34,12 @@ Invoke-RestMethod `
 ```
 
 5. Vercel env: `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REFRESH_TOKEN` (from response `refresh_token`). Redeploy.
-6. Extension: enable **Spotify** widget.
+6. Extension: enable **Now-Playing** widget, set implementation to **Spotify API**.
+
+## Last.fm
+
+1. Create an API account on the [Last.fm API portal](https://www.last.fm/api/account/create) to get an **API Key** (Callback URL can be left blank).
+2. Extension: enable **Now-Playing** widget → **Settings -> Advanced -> Now-Playing Widget** → Select **Last.fm API**, then enter your **Username** and **API Key**.
 
 ## GitHub
 

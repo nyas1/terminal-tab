@@ -31,7 +31,7 @@
 - TUI-style modular new tab dashboard with draggable/resizable widgets
 - Built-in widgets: search, date/time, stats, weather, links, todo, and fun extras
 - Integration widgets:
-  - 🟢 Spotify Now Playing
+  - 🎶 Now-Playing: Spotify, Last.fm
   - 🐙 GitHub Issues/PRs
   - 📺 AniList
   - 🍿 Trakt

@@ -41,7 +41,7 @@ export const SettingsWidgetsTab: React.FC<SettingsWidgetsTabProps> = ({
                         <WidgetToggle
                             key={w}
                             id={w}
-                            label={w}
+                            label={w === 'spotify' ? 'now-playing' : w}
                             isActive={!!activeWidgets[w]}
                             onToggle={onToggleWidget}
                         />

@@ -17,7 +17,11 @@
 </p>
 
 <p align="center">
-  <img src="https://shieldcn.dev/group/github/stars/nyas1/terminal-tab+github/forks/nyas1/terminal-tab+amo/users/terminal-newtab+amo/d/terminal-newtab.svg?mode=light" alt="Terminal Tab Stats">
+  <img alt="GitHub Stats" src="https://shieldcn.dev/group/github/stars/nyas1/terminal-tab+github/forks/nyas1/terminal-tab.svg?variant=branded&amp;mode=light" />
+</p>
+
+<p align="center">
+  <img alt="AMO Stats" src="https://shieldcn.dev/group/amo/users/terminal-newtab+amo/d/terminal-newtab+amo/rating/terminal-newtab.svg?variant=branded&amp;mode=light" />
 </p>
 
 <p align="center">
